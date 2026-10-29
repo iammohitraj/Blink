@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <AssemblyName>Blink.Core.Benchmarks</AssemblyName>
+    <RootNamespace>Blink.Core.Benchmarks</RootNamespace>
+    <IsPackable>false</IsPackable>
+    <Optimize>true</Optimize>
+    <ServerGarbageCollection>true</ServerGarbageCollection>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Blink.Core\Blink.Core.csproj" />
+  </ItemGroup>
+
+</Project>

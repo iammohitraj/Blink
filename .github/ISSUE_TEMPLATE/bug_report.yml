@@ -1,0 +1,61 @@
+name: Bug report
+description: Something in Blink is broken or behaves unexpectedly.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a bug. Please search existing issues first, and do not
+        include personal information or secrets in screenshots or logs.
+
+  - type: input
+    id: version
+    attributes:
+      label: Blink version
+      description: Shown in the settings window footer.
+      placeholder: "1.1.0"
+    validations:
+      required: true
+
+  - type: input
+    id: windows
+    attributes:
+      label: Windows version
+      description: For example Windows 11 23H2 build 22631.
+      placeholder: "Windows 11 23H2"
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open Settings
+        2. Enable ...
+        3. Press ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behaviour
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behaviour
+      description: Include the exact error text or a screenshot if it helps.
+    validations:
+      required: true
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: Anything else
+      description: Multiple monitors, a custom shell, Explorer mods, and so on.
+    validations:
+      required: false

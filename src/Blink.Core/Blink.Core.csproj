@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <AssemblyName>Blink.Core</AssemblyName>
+    <RootNamespace>Blink.Core</RootNamespace>
+    <Description>Allocation-conscious data structures and algorithms used by Blink.</Description>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+</Project>

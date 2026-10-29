@@ -1,0 +1,59 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{6C819FB9-7B44-4798-9B38-5D3998B5A2BB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Blink.Core", "src\Blink.Core\Blink.Core.csproj", "{2E6CB1F5-963D-4AAB-8865-6E9D8DED8502}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Blink", "src\Blink\Blink.csproj", "{404A632E-0513-40FB-9E75-BB18413B1CAA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlinkSetup", "src\Blink.Setup\BlinkSetup.csproj", "{489DC2F9-1E34-40A0-A79A-4AE45A07E613}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{8CC0A9FB-57E0-4FF0-9058-F50809EAA790}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Blink.Core.Tests", "tests\Blink.Core.Tests\Blink.Core.Tests.csproj", "{CB5F4FAD-2BB7-474E-84C5-D9DFF0ED915C}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "benchmarks", "benchmarks", "{7540D078-994F-4BF5-ACF2-26FD1C480A21}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Blink.Core.Benchmarks", "benchmarks\Blink.Core.Benchmarks\Blink.Core.Benchmarks.csproj", "{8E689144-0C1A-4BDE-A34E-EBA2E6CD3623}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{2E6CB1F5-963D-4AAB-8865-6E9D8DED8502}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2E6CB1F5-963D-4AAB-8865-6E9D8DED8502}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2E6CB1F5-963D-4AAB-8865-6E9D8DED8502}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2E6CB1F5-963D-4AAB-8865-6E9D8DED8502}.Release|Any CPU.Build.0 = Release|Any CPU
+		{404A632E-0513-40FB-9E75-BB18413B1CAA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{404A632E-0513-40FB-9E75-BB18413B1CAA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{404A632E-0513-40FB-9E75-BB18413B1CAA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{404A632E-0513-40FB-9E75-BB18413B1CAA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{489DC2F9-1E34-40A0-A79A-4AE45A07E613}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{489DC2F9-1E34-40A0-A79A-4AE45A07E613}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{489DC2F9-1E34-40A0-A79A-4AE45A07E613}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{489DC2F9-1E34-40A0-A79A-4AE45A07E613}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CB5F4FAD-2BB7-474E-84C5-D9DFF0ED915C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CB5F4FAD-2BB7-474E-84C5-D9DFF0ED915C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CB5F4FAD-2BB7-474E-84C5-D9DFF0ED915C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CB5F4FAD-2BB7-474E-84C5-D9DFF0ED915C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8E689144-0C1A-4BDE-A34E-EBA2E6CD3623}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8E689144-0C1A-4BDE-A34E-EBA2E6CD3623}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8E689144-0C1A-4BDE-A34E-EBA2E6CD3623}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8E689144-0C1A-4BDE-A34E-EBA2E6CD3623}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{2E6CB1F5-963D-4AAB-8865-6E9D8DED8502} = {6C819FB9-7B44-4798-9B38-5D3998B5A2BB}
+		{404A632E-0513-40FB-9E75-BB18413B1CAA} = {6C819FB9-7B44-4798-9B38-5D3998B5A2BB}
+		{489DC2F9-1E34-40A0-A79A-4AE45A07E613} = {6C819FB9-7B44-4798-9B38-5D3998B5A2BB}
+		{CB5F4FAD-2BB7-474E-84C5-D9DFF0ED915C} = {8CC0A9FB-57E0-4FF0-9058-F50809EAA790}
+		{8E689144-0C1A-4BDE-A34E-EBA2E6CD3623} = {7540D078-994F-4BF5-ACF2-26FD1C480A21}
+	EndGlobalSection
+EndGlobal

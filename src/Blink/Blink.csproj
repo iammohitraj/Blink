@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ApplicationHighDpiMode>PerMonitorV2</ApplicationHighDpiMode>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>Assets\blink.ico</ApplicationIcon>
+    <AssemblyName>Blink</AssemblyName>
+    <RootNamespace>Blink</RootNamespace>
+    <Product>Blink</Product>
+    <AssemblyTitle>Blink</AssemblyTitle>
+    <Description>Blink hides and shows your desktop icons instantly.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Blink.Core\Blink.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Assets\blink.ico" LogicalName="Blink.Assets.blink.ico" />
+    <None Include="Assets\blink-logo.png" />
+  </ItemGroup>
+
+</Project>

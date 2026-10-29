@@ -1,7 +1,26 @@
+# Build output
 bin/
 obj/
+artifacts/
 dist/
 dist-setup/
 release/
+TestResults/
+coverage/
+*.binlog
+
+# IDE and user settings
+.vs/
+.idea/
 *.user
 *.suo
+*.DotSettings.user
+
+# OS noise
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# Local files that must never be committed
+.env
+.env.*

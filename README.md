@@ -1,13 +1,24 @@
+<div align="center">
+
+<img src="src/Blink/Assets/blink-logo.png" alt="Blink" width="120">
+
 # Blink
 
-<img src="Assets/blink-logo.png" alt="Blink" width="128">
+**Desktop icons, one blink away.**
 
-**Blink** hides and shows your Windows desktop icons instantly. Double-click empty
+[![Build](https://github.com/iammohitraj/Blink/actions/workflows/build.yml/badge.svg)](https://github.com/iammohitraj/Blink/actions/workflows/build.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-7C5CFF.svg)](LICENSE)
+[![Platform](https://img.shields.io/badge/platform-Windows%2010%20%7C%2011-00C8FF.svg)](#requirements)
+[![.NET](https://img.shields.io/badge/.NET-8.0-512BD4.svg)](https://dotnet.microsoft.com/download)
+
+</div>
+
+Blink hides and shows your Windows desktop icons instantly. Double-click empty
 desktop space, press `Ctrl + Alt + D`, or click the tray icon — the icons are gone
 (and back) in a blink.
 
-Blink is a small tray utility with a dark themed installer. It installs per-user,
-needs no administrator rights and keeps itself up to date from GitHub Releases.
+It is a small, self-contained tray app with a hand-drawn dark installer. No admin
+rights, no service, no telemetry, and it keeps itself up to date from GitHub Releases.
 
 ## Install
 
@@ -16,67 +27,68 @@ needs no administrator rights and keeps itself up to date from GitHub Releases.
 2. Run it and press **Install Blink**.
 
 Setup copies Blink to `%LOCALAPPDATA%\Blink`, adds a Start Menu shortcut, registers
-Blink in **Settings → Apps → Installed apps** and starts it in the notification area.
-The `Start with Windows`, `Desktop shortcut` and `Launch after installing` options can
-be changed in the installer before you install.
+it under **Settings → Apps → Installed apps**, and starts it in the notification area.
+You can change `Start with Windows`, `Desktop shortcut` and `Launch after installing`
+before installing.
 
-Blink runs with the same rights as you do — nothing is written outside your own
-profile and no elevation prompt appears.
+Blink runs with your own rights. Nothing is written outside your profile and no UAC
+prompt appears.
 
-### Installing without the wizard
+<details>
+<summary>Silent install</summary>
 
-`BlinkSetup.exe --silent` performs the same install with no window, which is handy for
-scripted setups. It is also how Blink's own updater applies a new version.
+```powershell
+.\BlinkSetup-1.1.0.exe --silent
+```
+
+The same install without a window, which is what Blink's updater uses.
+
+</details>
 
 ## Features
 
-- **Instant toggle** — `Ctrl + Alt + D`, a double-click on empty desktop space, or the tray icon.
-- **Dark themed installer and settings** — custom drawn to match Windows 11, with rounded corners.
-- **Tray menu** — show/hide icons, settings, startup, updates and exit.
-- **Automatic updates** — Blink checks GitHub Releases in the background and installs new versions in place.
-- **Runs quietly** — no window, no service, no telemetry.
-- **Self-contained** — nothing to install first; no .NET runtime needed.
-- **Per-user** — everything lives in your own profile, so no admin rights and no UAC prompt.
+- **Three ways to toggle** — global shortcut, double-click on empty wallpaper, or tray icon.
+- **Instant** — a single `ShowWindow` call on the desktop's list view; nothing is rebuilt.
+- **Dark, custom UI** — settings and installer are drawn from scratch to match Windows 11.
+- **Automatic updates** — checks GitHub Releases in the background and updates in place.
+- **Per-user and portable by design** — no admin rights, no service, no leftover drivers.
+- **Self-contained** — ships with the .NET runtime, so there is nothing to install first.
+- **Small and honest** — no telemetry, no background network traffic except the update check.
 
-## How to use
+## Usage
 
 | Action | Result |
 |---|---|
 | `Ctrl + Alt + D` | Toggle desktop icons |
 | Double-click empty desktop wallpaper | Toggle desktop icons |
 | Double-click the tray icon | Toggle desktop icons |
-| Right-click the tray icon | Menu: show/hide icons, settings, startup, updates, exit |
+| Right-click the tray icon | Show/hide icons, settings, startup, updates, exit |
 
-The settings window lets you turn the keyboard shortcut and the double-click
-gesture on or off individually, choose whether Blink starts with Windows, and shows
-the current state of the desktop icons.
+The settings window toggles the shortcut and the double-click gesture independently,
+controls start-with-Windows, and shows the current icon state and update status.
 
-## Updates
-
-Blink checks for a newer release on startup (at most once every 12 hours) and then
-in the background. When one is found:
-
-* the tray menu entry changes to **Install update…**, and
-* **Settings → Updates** shows the new version next to a one-click install button.
-
-Installing an update downloads the new `BlinkSetup` into `%TEMP%\Blink-Update`,
-runs it silently, and reopens Blink. Your settings are never touched by an update.
-Automatic checking can be switched off in **Settings → Updates**.
-
-You can also check manually at any time from the tray menu or the settings window.
-
-## Command line
+### Command line
 
 | Switch | Behaviour |
 |---|---|
 | *(none)* | Start Blink in the notification area |
-| `--settings` | Start Blink and open the settings window (signals the running copy if one exists) |
-| `--toggle` | Hide or show the desktop icons once, then exit — handy for shortcuts and scripts |
-| `--uninstall` | Uninstall Blink after a confirmation prompt |
-| `--uninstall --quiet` | Uninstall Blink without any prompt |
+| `--settings` | Start Blink and open settings (signals the running copy if there is one) |
+| `--toggle` | Hide or show the icons once, then exit — handy for shortcuts and scripts |
+| `--uninstall` | Uninstall after a confirmation prompt |
+| `--uninstall --quiet` | Uninstall without a prompt |
 
-Only one copy of Blink runs at a time; starting a second one brings up the
-settings window of the first instead of launching a duplicate.
+Only one copy runs at a time; launching a second one brings up the first one's
+settings window.
+
+## Updates
+
+Blink asks GitHub for the newest release at most once every 12 hours. When a newer
+version exists, the tray menu shows **Install update…** and the settings window offers
+a one-click install.
+
+The updater downloads the installer to `%TEMP%\Blink-Update`, verifies the response,
+runs it silently, and lets the installer replace `Blink.exe`. Preferences are never
+touched. Automatic checks can be disabled in **Settings → Updates**.
 
 ## Where Blink stores things
 
@@ -89,96 +101,122 @@ settings window of the first instead of launching a duplicate.
 
 ## Uninstall
 
-Open **Settings → Apps → Installed apps**, find **Blink** and choose *Uninstall*.
-Blink asks for confirmation, then removes its shortcuts, its startup entry, its
-settings and the program folder.
-
-From a terminal:
+Use **Settings → Apps → Installed apps → Blink → Uninstall**, or run:
 
 ```powershell
 & "$env:LOCALAPPDATA\Blink\Blink.exe" --uninstall
 ```
 
+Blink removes its shortcuts, startup entry, settings and program folder.
+
 ## Requirements
 
-* Windows 10 or Windows 11 (x64)
-* No administrator rights
-* No .NET runtime required
+- Windows 10 or Windows 11 (x64)
+- No administrator rights
+- No .NET runtime required (the release is self-contained)
 
-## Versioning and releases
+## Repository layout
 
-The version lives in exactly one place:
-
-```xml
-<!-- Directory.Build.props -->
-<Version>1.0.0</Version>
+```text
+Blink/
+├─ src/
+│  ├─ Blink/                  WinForms tray app, UI, updater
+│  ├─ Blink.Core/             Data structures and algorithms library
+│  └─ Blink.Setup/            Installer and uninstall engine
+├─ tests/
+│  └─ Blink.Core.Tests/       xUnit suite for Blink.Core
+├─ benchmarks/
+│  └─ Blink.Core.Benchmarks/  Allocation and timing harness
+├─ docs/
+│  ├─ ARCHITECTURE.md         How the app, updater and installer fit together
+│  └─ ALGORITHMS.md           Every structure, operation and complexity
+├─ tools/                     Icon generator and release script
+├─ .github/                   CI, issue forms and PR template
+├─ Blink.sln
+└─ Directory.Build.props      Shared version and product metadata
 ```
 
-Both `Blink.exe` and `BlinkSetup.exe` inherit it, and `BlinkSetup.exe` reports it
-to *Installed apps* as `DisplayVersion`. The in-app updater compares the newest
-release tag against it, so **bumping this number is what cuts a release**.
+### Blink.Core
 
-To ship a new version:
+The app's hot paths are backed by a small, dependency-free library written for this
+project: a dynamic array, stacks, queues, a bounded LRU cache, an open-addressed hash
+map, heaps, balanced trees, a trie, graph traversals, sorting and searching. Each
+piece is tested and documented with its complexity.
 
-```powershell
-# Bump, build Blink.exe + BlinkSetup.exe, and write release\BlinkSetup-1.1.0.exe
-powershell -ExecutionPolicy Bypass -File .\tools\Release.ps1 patch
+It is used for real work inside Blink:
 
-# Same, but also commit the bump, tag v1.1.0, push and create the GitHub release
-powershell -ExecutionPolicy Bypass -File .\tools\Release.ps1 patch -Publish
-```
+| Used by | Structure | Why |
+|---|---|---|
+| Update checks | `SemanticVersion` | Correct SemVer 2.0 ordering, prereleases included |
+| Icon loading | `LruCache<int, Icon>` | Keeps the handful of sizes Windows asks for |
+| Update download | `ArrayPool<byte>` | No per-download 80 KB buffer churn |
+| Double-click detection | `PeriodicTimer` + thread-static buffers | No polling loop, no per-hit allocations |
+| Settings listener | `WaitHandle.WaitAny` | Blocks until there is work instead of waking every 300 ms |
 
-`patch`, `minor` and `major` step the version; `-Version 2.0.0` sets it explicitly
-and `none` rebuilds the current one. Publish the asset under the exact name
-`BlinkSetup-<version>.exe` inside a release tagged `v<version>` — that is the name
-the updater looks for first. If no release exists yet, Blink simply reports that it
-is up to date.
+See [docs/ALGORITHMS.md](docs/ALGORITHMS.md) for the full reference.
 
 ## Build from source
 
 Requirements: Windows 10/11 and the [.NET 8 SDK](https://dotnet.microsoft.com/download).
 
 ```powershell
-# The app (dist\Blink.exe)
-dotnet publish Blink.csproj -c Release -r win-x64 --self-contained true `
-    -p:PublishSingleFile=true `
-    -p:EnableCompressionInSingleFile=true `
-    -p:IncludeNativeLibrariesForSelfExtract=true `
-    -p:DebugType=None -p:DebugSymbols=false `
-    -o dist
+git clone https://github.com/iammohitraj/Blink.git
+cd Blink
 
-# The installer (Setup\dist-setup\BlinkSetup.exe) — run this after the app,
-# because the installer embeds dist\Blink.exe at build time
-dotnet publish Setup\BlinkSetup.csproj -c Release -r win-x64 --self-contained true `
-    -p:PublishSingleFile=true `
-    -p:EnableCompressionInSingleFile=true `
-    -p:IncludeNativeLibrariesForSelfExtract=true `
-    -p:DebugType=None -p:DebugSymbols=false `
-    -o Setup\dist-setup
+dotnet build Blink.sln -c Release
+dotnet test  Blink.sln -c Release
 ```
 
-The icon and brand logo are generated from source, so the artwork can be
-regenerated at any time:
+Run the app straight from the build output:
+
+```powershell
+dotnet run --project src\Blink\Blink.csproj
+```
+
+### Package a release
+
+```powershell
+# Bump the version, test, build the app and installer, write release\BlinkSetup-<version>.exe
+powershell -ExecutionPolicy Bypass -File .\tools\Release.ps1 patch
+```
+
+`patch`, `minor` and `major` step the version; `-Version 2.0.0` sets it explicitly;
+`none` rebuilds the current one. Add `-Publish` to commit the bump, tag it, push and
+create the GitHub release with the installer attached.
+
+The installer embeds `dist\Blink.exe` at build time, so the script always publishes
+the app before the setup project.
+
+### Benchmarks
+
+```powershell
+dotnet run --project benchmarks\Blink.Core.Benchmarks -c Release
+```
+
+The harness prints wall-clock time and bytes allocated per benchmark, with checksums
+so the JIT cannot skip work.
+
+### Regenerate the artwork
+
+The icon and logo are drawn with `System.Drawing`, so the brand assets live in source:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\tools\Generate-Icon.ps1
 ```
 
-## Project layout
+## Versioning
 
-| File | Responsibility |
-|---|---|
-| `Program.cs` | Entry point, single-instance handling, command line switches |
-| `TrayApplicationContext.cs` | Tray icon, menu, global shortcut, double-click watcher, settings host |
-| `AppInfo.cs` | Brand, version and release endpoint metadata |
-| `AppSettings.cs` | Preference file handling |
-| `DesktopIconController.cs` | Finds and shows/hides the desktop icon list view (`SHELLDLL_DefView` / `SysListView32`) |
-| `DesktopHotKeyWindow.cs` | `Ctrl + Alt + D` registration |
-| `DesktopDoubleClickWatcher.cs` | Detects double-clicks on empty desktop space |
-| `StartupManager.cs` | Start-with-Windows registry entry |
-| `Updates/` | GitHub Releases client, update coordinator and the uninstaller |
-| `Ui/` | Dark theme: settings window, cards, buttons, switches, menu renderer, icon loading |
-| `Setup/` | `BlinkSetup.exe`: install engine, installer window, progress bar |
-| `tools/Release.ps1` | Version bump, build and release packaging |
-| `tools/Generate-Icon.ps1` | Draws `Assets/blink.ico` and `Assets/blink-logo.png` |
+The version lives in exactly one place — `Directory.Build.props`. Blink, Blink Setup
+and the release asset all inherit it, and the updater compares GitHub tags against it.
+Tags are `v<major>.<minor>.<patch>` and the asset is always
+`BlinkSetup-<version>.exe`.
 
+## Contributing
+
+Bug reports and pull requests are welcome. Please read
+[CONTRIBUTING.md](CONTRIBUTING.md) and [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) first.
+Security issues should follow [SECURITY.md](SECURITY.md) instead of a public issue.
+
+## License
+
+[MIT](LICENSE) © 2026 Mohit Raj

@@ -49,10 +49,11 @@ Set-StrictMode -Version Latest
 
 $root = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
 $propsPath = Join-Path $root 'Directory.Build.props'
-$appProject = Join-Path $root 'Blink.csproj'
-$setupProject = Join-Path $root 'Setup\BlinkSetup.csproj'
+$solution = Join-Path $root 'Blink.sln'
+$appProject = Join-Path $root 'src\Blink\Blink.csproj'
+$setupProject = Join-Path $root 'src\Blink.Setup\BlinkSetup.csproj'
 $appOut = Join-Path $root 'dist'
-$setupOut = Join-Path $root 'Setup\dist-setup'
+$setupOut = Join-Path $root 'src\Blink.Setup\dist-setup'
 $releaseOut = Join-Path $root 'release'
 $repository = 'iammohitraj/Blink'
 
@@ -136,7 +137,11 @@ else {
 
 # The app has to be published first: the installer embeds dist\Blink.exe at build time.
 Write-Host ''
-Write-Host 'Step 1/3  Building Blink.exe' -ForegroundColor Cyan
+Write-Host 'Step 1/4  Running the test suite' -ForegroundColor Cyan
+Invoke-DotNet @('test', $solution, '-c', 'Release', '--nologo')
+
+Write-Host ''
+Write-Host 'Step 2/4  Building Blink.exe' -ForegroundColor Cyan
 Invoke-DotNet @(
     'publish', $appProject,
     '-c', 'Release',
@@ -156,7 +161,7 @@ if (-not (Test-Path $appExe)) {
 }
 
 Write-Host ''
-Write-Host 'Step 2/3  Building BlinkSetup.exe' -ForegroundColor Cyan
+Write-Host 'Step 3/4  Building BlinkSetup.exe' -ForegroundColor Cyan
 Invoke-DotNet @(
     'publish', $setupProject,
     '-c', 'Release',
@@ -176,7 +181,7 @@ if (-not (Test-Path $setupExe)) {
 }
 
 Write-Host ''
-Write-Host 'Step 3/3  Packaging the release asset' -ForegroundColor Cyan
+Write-Host 'Step 4/4  Packaging the release asset' -ForegroundColor Cyan
 if (-not (Test-Path $releaseOut)) {
     New-Item -ItemType Directory -Path $releaseOut | Out-Null
 }

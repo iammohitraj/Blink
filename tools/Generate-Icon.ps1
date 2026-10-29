@@ -12,7 +12,7 @@ $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName System.Drawing
 
 if (-not $OutputDirectory) {
-    $OutputDirectory = Join-Path (Split-Path -Parent $PSScriptRoot) 'Assets'
+    $OutputDirectory = Join-Path (Split-Path -Parent $PSScriptRoot) 'src\Blink\Assets'
 }
 
 New-Item -ItemType Directory -Path $OutputDirectory -Force | Out-Null
