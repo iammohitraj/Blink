@@ -1,0 +1,25 @@
+<Project>
+
+  <!--
+    Single source of truth for Blink's product identity and version.
+
+    Bump <Version> here to release a new build: Blink and Blink Setup both pick it up,
+    and the app reports the same number to GitHub when it looks for updates.
+  -->
+  <PropertyGroup>
+    <Version>1.0.0</Version>
+    <Company>Mohit Raj</Company>
+    <Authors>Mohit Raj</Authors>
+    <Copyright>Copyright (c) 2026 Mohit Raj</Copyright>
+    <RepositoryUrl>https://github.com/iammohitraj/Blink</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageProjectUrl>https://github.com/iammohitraj/Blink</PackageProjectUrl>
+    <NeutralLanguage>en-US</NeutralLanguage>
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+  </PropertyGroup>
+
+</Project>
