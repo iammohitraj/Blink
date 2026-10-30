@@ -4,6 +4,17 @@ All notable changes to Blink are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.1] - 2026-10-31
+
+### Changed
+
+- New brand artwork: the app, tray and installer icons and the 512 px logo are
+  generated from a new master image, with a tighter crop at small sizes.
+- Added a vector version of the logo at `src/Blink/Assets/blink-logo.svg`.
+- Raised the UI to a higher-contrast dark palette with accessible text contrast,
+  visible focus rings and keyboard activation for buttons and switches.
+- Stronger menu selection, tooltips, switch tracks, status dot and progress bar.
+
 ## [1.1.0] - 2026-10-30
 
 ### Added

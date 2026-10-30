@@ -38,7 +38,7 @@ prompt appears.
 <summary>Silent install</summary>
 
 ```powershell
-.\BlinkSetup-1.1.0.exe --silent
+.\BlinkSetup-1.1.1.exe --silent
 ```
 
 The same install without a window, which is what Blink's updater uses.
