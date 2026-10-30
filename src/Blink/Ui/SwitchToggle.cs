@@ -26,6 +26,8 @@ internal sealed class SwitchToggle : Control
         BackColor = Color.Transparent;
         Cursor = Cursors.Hand;
         Size = new Size(44, 24);
+        TabStop = true;
+        SetStyle(ControlStyles.Selectable, true);
         animator.Tick += OnAnimationTick;
     }
 
@@ -77,6 +79,34 @@ internal sealed class SwitchToggle : Control
         base.OnEnabledChanged(e);
     }
 
+    protected override void OnGotFocus(EventArgs e)
+    {
+        Invalidate();
+        base.OnGotFocus(e);
+    }
+
+    protected override void OnLostFocus(EventArgs e)
+    {
+        Invalidate();
+        base.OnLostFocus(e);
+    }
+
+    protected override void OnKeyDown(KeyEventArgs e)
+    {
+        if (e.KeyCode is Keys.Space or Keys.Enter)
+        {
+            if (Enabled)
+            {
+                Checked = !Checked;
+            }
+
+            e.Handled = true;
+            return;
+        }
+
+        base.OnKeyDown(e);
+    }
+
     protected override void OnPaint(PaintEventArgs e)
     {
         Graphics graphics = e.Graphics;
@@ -96,9 +126,14 @@ internal sealed class SwitchToggle : Control
 
         Rectangle bounds = new(0, 0, width - 1, height - 1);
         using (GraphicsPath path = Shapes.RoundedRect(bounds, radius))
-        using (SolidBrush fill = new(track))
         {
-            graphics.FillPath(fill, path);
+            using (SolidBrush fill = new(track))
+            {
+                graphics.FillPath(fill, path);
+            }
+
+            using Pen edge = new(Theme.BorderStrong);
+            graphics.DrawPath(edge, path);
         }
 
         int margin = Math.Max(2, (int)Math.Round(height * 0.13));
@@ -107,11 +142,19 @@ internal sealed class SwitchToggle : Control
         float right = width - margin - knobSize;
         float knobX = left + ((right - left) * progress);
 
-        using (SolidBrush knob = new(Enabled ? Color.White : Color.FromArgb(190, 200, 214)))
+        using (SolidBrush knob = new(Enabled ? Color.White : Color.FromArgb(180, 190, 210)))
         using (SolidBrush shadow = new(Color.FromArgb(60, 0, 0, 0)))
         {
             graphics.FillEllipse(shadow, knobX + 1, margin + 1, knobSize, knobSize);
             graphics.FillEllipse(knob, knobX, margin, knobSize, knobSize);
+        }
+
+        if (Focused && Enabled)
+        {
+            Rectangle ringBounds = new(1, 1, Math.Max(1, width - 3), Math.Max(1, height - 3));
+            using GraphicsPath ringPath = Shapes.RoundedRect(ringBounds, Math.Max(1, radius - 1));
+            using Pen focusPen = new(Theme.FocusRing, 2f);
+            graphics.DrawPath(focusPen, ringPath);
         }
     }
 

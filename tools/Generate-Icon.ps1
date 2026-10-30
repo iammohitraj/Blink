@@ -1,8 +1,10 @@
-# Generates the Blink application icon (multi-resolution .ico) and a PNG brand logo.
-# The artwork is drawn with System.Drawing, so every size stays crisp and no external
-# design tools are required.
+# Builds Blink's brand assets from the master artwork:
+#   - blink-logo.png  (512 px rounded tile for docs and the repo README)
+#   - blink.ico       (multi-resolution icon for the app, tray and installer)
+# Small icon sizes use a tighter crop so the monitor stays readable in the tray.
 [CmdletBinding()]
 param(
+    [string] $SourceImage,
     [string] $OutputDirectory
 )
 
@@ -11,19 +13,25 @@ $ErrorActionPreference = 'Stop'
 
 Add-Type -AssemblyName System.Drawing
 
+$assetsDirectory = Join-Path (Split-Path -Parent $PSScriptRoot) 'src\Blink\Assets'
+
 if (-not $OutputDirectory) {
-    $OutputDirectory = Join-Path (Split-Path -Parent $PSScriptRoot) 'src\Blink\Assets'
+    $OutputDirectory = $assetsDirectory
+}
+
+if (-not $SourceImage) {
+    $SourceImage = Join-Path $assetsDirectory 'blink-logo-source.png'
+}
+
+if (-not (Test-Path -LiteralPath $SourceImage)) {
+    throw "Master artwork not found: $SourceImage"
 }
 
 New-Item -ItemType Directory -Path $OutputDirectory -Force | Out-Null
 
-$gradientStart = [System.Drawing.ColorTranslator]::FromHtml('#7C5CFF')
-$gradientEnd = [System.Drawing.ColorTranslator]::FromHtml('#00C8FF')
-$pupilColor = [System.Drawing.ColorTranslator]::FromHtml('#0B1020')
-$edgeColor = [System.Drawing.Color]::FromArgb(56, 255, 255, 255)
-$glossStart = [System.Drawing.Color]::FromArgb(64, 255, 255, 255)
-$glossEnd = [System.Drawing.Color]::FromArgb(0, 255, 255, 255)
-$specularColor = [System.Drawing.Color]::FromArgb(235, 255, 255, 255)
+$cornerRatio = 0.235
+$edgeColor = [System.Drawing.Color]::FromArgb(64, 255, 255, 255)
+$iconSizes = 16, 20, 24, 32, 40, 48, 64, 128, 256
 
 function New-RoundedPath {
     param(
@@ -35,11 +43,10 @@ function New-RoundedPath {
     )
 
     $path = [System.Drawing.Drawing2D.GraphicsPath]::new()
-    $diameter = $Radius * 2
+    $diameter = [Math]::Min($Radius * 2, [Math]::Min($Width, $Height))
 
     if ($diameter -le 0) {
-        $rectangle = [System.Drawing.RectangleF]::new($X, $Y, $Width, $Height)
-        $path.AddRectangle($rectangle)
+        $path.AddRectangle([System.Drawing.RectangleF]::new($X, $Y, $Width, $Height))
         return $path
     }
 
@@ -54,40 +61,63 @@ function New-RoundedPath {
     return $path
 }
 
-# A lens / almond shaped "eye" built from two mirrored bezier curves.
-function New-EyePath {
+# Finds the painted area so the icon crop follows the artwork instead of hardcoded
+# coordinates; the background of the master image is almost black.
+function Get-ContentBounds {
     param(
-        [float] $CenterX,
-        [float] $CenterY,
-        [float] $HalfWidth,
-        [float] $HalfHeight
+        [System.Drawing.Bitmap] $Bitmap,
+        [int] $Threshold = 30
     )
 
-    $path = [System.Drawing.Drawing2D.GraphicsPath]::new()
-    $left = $CenterX - $HalfWidth
-    $right = $CenterX + $HalfWidth
-    $controlX = $HalfWidth * 0.42
-    $controlY = $HalfHeight * 1.22
+    $minX = $Bitmap.Width
+    $minY = $Bitmap.Height
+    $maxX = -1
+    $maxY = -1
 
-    $path.StartFigure()
-    $path.AddBezier(
-        $left, $CenterY,
-        ($CenterX - $controlX), ($CenterY - $controlY),
-        ($CenterX + $controlX), ($CenterY - $controlY),
-        $right, $CenterY)
-    $path.AddBezier(
-        $right, $CenterY,
-        ($CenterX + $controlX), ($CenterY + $controlY),
-        ($CenterX - $controlX), ($CenterY + $controlY),
-        $left, $CenterY)
-    $path.CloseFigure()
-    return $path
+    for ($y = 0; $y -lt $Bitmap.Height; $y += 2) {
+        for ($x = 0; $x -lt $Bitmap.Width; $x += 2) {
+            $pixel = $Bitmap.GetPixel($x, $y)
+            if ((($pixel.R + $pixel.G + $pixel.B) / 3) -gt $Threshold) {
+                if ($x -lt $minX) { $minX = $x }
+                if ($x -gt $maxX) { $maxX = $x }
+                if ($y -lt $minY) { $minY = $y }
+                if ($y -gt $maxY) { $maxY = $y }
+            }
+        }
+    }
+
+    if ($maxX -lt 0) {
+        return [System.Drawing.Rectangle]::new(0, 0, $Bitmap.Width, $Bitmap.Height)
+    }
+
+    return [System.Drawing.Rectangle]::new($minX, $minY, ($maxX - $minX) + 1, ($maxY - $minY) + 1)
 }
 
-function New-BlinkBitmap {
+function New-SquareCrop {
     param(
-        [int] $Size,
-        [switch] $Detailed
+        [System.Drawing.Rectangle] $Bounds,
+        [int] $SourceWidth,
+        [int] $SourceHeight,
+        [int] $Side
+    )
+
+    $Side = [int][Math]::Min($Side, [Math]::Min($SourceWidth, $SourceHeight))
+    $centerX = $Bounds.X + ($Bounds.Width / 2.0)
+    $centerY = $Bounds.Y + ($Bounds.Height / 2.0)
+
+    $x = [int][Math]::Round($centerX - ($Side / 2.0))
+    $y = [int][Math]::Round($centerY - ($Side / 2.0))
+    $x = [Math]::Max(0, [Math]::Min($x, $SourceWidth - $Side))
+    $y = [Math]::Max(0, [Math]::Min($y, $SourceHeight - $Side))
+
+    return [System.Drawing.Rectangle]::new($x, $y, $Side, $Side)
+}
+
+function New-TileBitmap {
+    param(
+        [System.Drawing.Image] $Source,
+        [System.Drawing.Rectangle] $Crop,
+        [int] $Size
     )
 
     $bitmap = [System.Drawing.Bitmap]::new($Size, $Size, [System.Drawing.Imaging.PixelFormat]::Format32bppArgb)
@@ -97,58 +127,21 @@ function New-BlinkBitmap {
     $graphics.PixelOffsetMode = [System.Drawing.Drawing2D.PixelOffsetMode]::HighQuality
     $graphics.Clear([System.Drawing.Color]::Transparent)
 
-    $padding = [Math]::Max(0.5, $Size * 0.035)
-    $innerSize = $Size - ($padding * 2)
-    $radius = $Size * 0.235
+    $inset = [float][Math]::Max(0.5, $Size * 0.012)
+    $radius = [float]($Size * $cornerRatio)
+    $tile = New-RoundedPath -X $inset -Y $inset -Width ($Size - (2 * $inset)) -Height ($Size - (2 * $inset)) -Radius $radius
 
-    $bounds = [System.Drawing.RectangleF]::new($padding, $padding, $innerSize, $innerSize)
-    $tile = New-RoundedPath -X $padding -Y $padding -Width $innerSize -Height $innerSize -Radius $radius
-
-    # Brand gradient tile.
-    $gradient = [System.Drawing.Drawing2D.LinearGradientBrush]::new($bounds, $gradientStart, $gradientEnd, 55.0)
-    $graphics.FillPath($gradient, $tile)
-
-    # Soft top highlight for depth.
-    $glossHeight = $innerSize * 0.58
-    $glossBounds = [System.Drawing.RectangleF]::new($padding, $padding, $innerSize, $glossHeight)
-    $gloss = [System.Drawing.Drawing2D.LinearGradientBrush]::new($glossBounds, $glossStart, $glossEnd, 90.0)
     $graphics.SetClip($tile)
-    $graphics.FillRectangle($gloss, $glossBounds)
+    $destination = [System.Drawing.RectangleF]::new(0, 0, $Size, $Size)
+    $graphics.DrawImage($Source, $destination, $Crop, [System.Drawing.GraphicsUnit]::Pixel)
     $graphics.ResetClip()
 
-    $centerX = $Size / 2.0
-    $centerY = $Size / 2.0
-    $eyeWidth = $Size * 0.295
-    $eyeHeight = $Size * 0.175
-    $eye = New-EyePath -CenterX $centerX -CenterY $centerY -HalfWidth $eyeWidth -HalfHeight $eyeHeight
-
-    $white = [System.Drawing.SolidBrush]::new([System.Drawing.Color]::White)
-    $graphics.FillPath($white, $eye)
-
-    $pupilRadius = $Size * 0.122
-    $pupil = [System.Drawing.SolidBrush]::new($pupilColor)
-    $graphics.FillEllipse($pupil, ($centerX - $pupilRadius), ($centerY - $pupilRadius), ($pupilRadius * 2), ($pupilRadius * 2))
-
-    if ($Detailed) {
-        $specularRadius = [Math]::Max(1.0, $Size * 0.038)
-        $specularX = $centerX + ($pupilRadius * 0.10) - $specularRadius
-        $specularY = $centerY - ($pupilRadius * 0.45) - $specularRadius
-        $specular = [System.Drawing.SolidBrush]::new($specularColor)
-        $graphics.FillEllipse($specular, $specularX, $specularY, ($specularRadius * 2), ($specularRadius * 2))
-        $specular.Dispose()
-    }
-
-    # Hairline edge keeps the tile readable on light and dark wallpapers alike.
-    $strokeWidth = [float][Math]::Max(0.9, $Size * 0.018)
+    # A hairline edge keeps the dark tile readable on dark wallpapers and the taskbar.
+    $strokeWidth = [float][Math]::Max(0.8, $Size * 0.01)
     $stroke = [System.Drawing.Pen]::new($edgeColor, $strokeWidth)
     $graphics.DrawPath($stroke, $tile)
 
     $stroke.Dispose()
-    $pupil.Dispose()
-    $white.Dispose()
-    $eye.Dispose()
-    $gloss.Dispose()
-    $gradient.Dispose()
     $tile.Dispose()
     $graphics.Dispose()
 
@@ -161,6 +154,17 @@ function Get-IconDib {
 
     $width = $Bitmap.Width
     $height = $Bitmap.Height
+
+    $rectangle = [System.Drawing.Rectangle]::new(0, 0, $width, $height)
+    $locked = $Bitmap.LockBits(
+        $rectangle,
+        [System.Drawing.Imaging.ImageLockMode]::ReadOnly,
+        [System.Drawing.Imaging.PixelFormat]::Format32bppArgb)
+
+    $stride = $locked.Stride
+    $pixels = [byte[]]::new($stride * $height)
+    [System.Runtime.InteropServices.Marshal]::Copy($locked.Scan0, $pixels, 0, $pixels.Length)
+    $Bitmap.UnlockBits($locked)
 
     $stream = [System.IO.MemoryStream]::new()
     $writer = [System.IO.BinaryWriter]::new($stream)
@@ -178,12 +182,13 @@ function Get-IconDib {
     $writer.Write([uint32]0)
 
     for ($y = $height - 1; $y -ge 0; $y--) {
+        $rowStart = $y * $stride
         for ($x = 0; $x -lt $width; $x++) {
-            $pixel = $Bitmap.GetPixel($x, $y)
-            $writer.Write([byte]$pixel.B)
-            $writer.Write([byte]$pixel.G)
-            $writer.Write([byte]$pixel.R)
-            $writer.Write([byte]$pixel.A)
+            $index = $rowStart + ($x * 4)
+            $writer.Write($pixels[$index])
+            $writer.Write($pixels[$index + 1])
+            $writer.Write($pixels[$index + 2])
+            $writer.Write($pixels[$index + 3])
         }
     }
 
@@ -200,52 +205,66 @@ function Get-IconDib {
     return , $bytes
 }
 
-$iconSizes = 16, 20, 24, 32, 40, 48, 64, 128, 256
-$frames = @()
+$sourceStream = [System.IO.File]::OpenRead($SourceImage)
+$source = [System.Drawing.Bitmap]::new($sourceStream)
 
-foreach ($size in $iconSizes) {
-    $bitmap = New-BlinkBitmap -Size $size -Detailed:($size -ge 48)
-    $frames += [pscustomobject]@{
-        Size = $size
-        Data = (Get-IconDib -Bitmap $bitmap)
+try {
+    $content = Get-ContentBounds -Bitmap $source
+    $tightCrop = New-SquareCrop -Bounds $content -SourceWidth $source.Width -SourceHeight $source.Height -Side ([int][Math]::Round($content.Height * 1.25))
+    $fullCrop = New-SquareCrop -Bounds $content -SourceWidth $source.Width -SourceHeight $source.Height -Side ([int][Math]::Round($content.Width * 1.18))
+    $logoCrop = New-SquareCrop -Bounds ([System.Drawing.Rectangle]::new(0, 0, $source.Width, $source.Height)) -SourceWidth $source.Width -SourceHeight $source.Height -Side ([Math]::Min($source.Width, $source.Height))
+
+    $frames = @()
+    foreach ($size in $iconSizes) {
+        $crop = if ($size -lt 48) { $tightCrop } else { $fullCrop }
+        $bitmap = New-TileBitmap -Source $source -Crop $crop -Size $size
+        $frames += [pscustomobject]@{
+            Size = $size
+            Data = (Get-IconDib -Bitmap $bitmap)
+        }
+        $bitmap.Dispose()
     }
-    $bitmap.Dispose()
-}
 
-$iconPath = Join-Path $OutputDirectory 'blink.ico'
-$fileStream = [System.IO.File]::Create($iconPath)
-$iconWriter = [System.IO.BinaryWriter]::new($fileStream)
-$iconWriter.Write([uint16]0)
-$iconWriter.Write([uint16]1)
-$iconWriter.Write([uint16]$frames.Count)
-
-$offset = 6 + (16 * $frames.Count)
-foreach ($frame in $frames) {
-    $dimension = if ($frame.Size -ge 256) { 0 } else { $frame.Size }
-    $iconWriter.Write([byte]$dimension)
-    $iconWriter.Write([byte]$dimension)
-    $iconWriter.Write([byte]0)
-    $iconWriter.Write([byte]0)
+    $iconPath = Join-Path $OutputDirectory 'blink.ico'
+    $fileStream = [System.IO.File]::Create($iconPath)
+    $iconWriter = [System.IO.BinaryWriter]::new($fileStream)
+    $iconWriter.Write([uint16]0)
     $iconWriter.Write([uint16]1)
-    $iconWriter.Write([uint16]32)
-    $iconWriter.Write([uint32]$frame.Data.Length)
-    $iconWriter.Write([uint32]$offset)
-    $offset += $frame.Data.Length
+    $iconWriter.Write([uint16]$frames.Count)
+
+    $offset = 6 + (16 * $frames.Count)
+    foreach ($frame in $frames) {
+        $dimension = if ($frame.Size -ge 256) { 0 } else { $frame.Size }
+        $iconWriter.Write([byte]$dimension)
+        $iconWriter.Write([byte]$dimension)
+        $iconWriter.Write([byte]0)
+        $iconWriter.Write([byte]0)
+        $iconWriter.Write([uint16]1)
+        $iconWriter.Write([uint16]32)
+        $iconWriter.Write([uint32]$frame.Data.Length)
+        $iconWriter.Write([uint32]$offset)
+        $offset += $frame.Data.Length
+    }
+
+    foreach ($frame in $frames) {
+        $iconWriter.Write([byte[]]$frame.Data)
+    }
+
+    $iconWriter.Flush()
+    $iconWriter.Dispose()
+    $fileStream.Dispose()
+
+    $logoPath = Join-Path $OutputDirectory 'blink-logo.png'
+    $logoBitmap = New-TileBitmap -Source $source -Crop $logoCrop -Size 512
+    $logoBitmap.Save($logoPath, [System.Drawing.Imaging.ImageFormat]::Png)
+    $logoBitmap.Dispose()
+
+    Write-Host "Source:       $SourceImage"
+    Write-Host "Icon written: $iconPath"
+    Write-Host "Logo written: $logoPath"
+    Write-Host "Icon sizes:   $($iconSizes -join ', ')"
 }
-
-foreach ($frame in $frames) {
-    $iconWriter.Write([byte[]]$frame.Data)
+finally {
+    $source.Dispose()
+    $sourceStream.Dispose()
 }
-
-$iconWriter.Flush()
-$iconWriter.Dispose()
-$fileStream.Dispose()
-
-$logoPath = Join-Path $OutputDirectory 'blink-logo.png'
-$logoBitmap = New-BlinkBitmap -Size 512 -Detailed
-$logoBitmap.Save($logoPath, [System.Drawing.Imaging.ImageFormat]::Png)
-$logoBitmap.Dispose()
-
-Write-Host "Icon written: $iconPath"
-Write-Host "Logo written: $logoPath"
-Write-Host "Icon sizes:   $($iconSizes -join ', ')"

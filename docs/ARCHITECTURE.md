@@ -123,8 +123,10 @@ Everything is per-user; setup never requests elevation.
 - `tools/Release.ps1` bumps the version, runs the tests, publishes the app, publishes
   the installer with the app embedded, and writes
   `release\BlinkSetup-<version>.exe`.
-- `tools/Generate-Icon.ps1` draws the multi-resolution icon and logo with
-  `System.Drawing`, so the artwork is reproducible from source.
+- `tools/Generate-Icon.ps1` crops and downsamples the master artwork
+  (`src/Blink/Assets/blink-logo-source.png`) into the multi-resolution icon and the
+  512 px logo. The vector version lives beside it as `blink-logo.svg`, so every asset
+  comes from one source.
 - `.github/workflows/build.yml` restores, builds and tests every push and pull request.
 
 ## Error handling philosophy

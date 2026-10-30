@@ -49,7 +49,8 @@ The same install without a window, which is what Blink's updater uses.
 
 - **Three ways to toggle** — global shortcut, double-click on empty wallpaper, or tray icon.
 - **Instant** — a single `ShowWindow` call on the desktop's list view; nothing is rebuilt.
-- **Dark, custom UI** — settings and installer are drawn from scratch to match Windows 11.
+- **High-contrast dark UI** — settings and installer are drawn from scratch with
+  accessible text contrast, visible focus rings and keyboard support.
 - **Automatic updates** — checks GitHub Releases in the background and updates in place.
 - **Per-user and portable by design** — no admin rights, no service, no leftover drivers.
 - **Self-contained** — ships with the .NET runtime, so there is nothing to install first.
@@ -198,7 +199,9 @@ so the JIT cannot skip work.
 
 ### Regenerate the artwork
 
-The icon and logo are drawn with `System.Drawing`, so the brand assets live in source:
+The master artwork is `src/Blink/Assets/blink-logo-source.png` and the vector version
+is `src/Blink/Assets/blink-logo.svg`. The generator crops and downsamples the master
+into the 512 px logo and the multi-resolution icon:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\tools\Generate-Icon.ps1

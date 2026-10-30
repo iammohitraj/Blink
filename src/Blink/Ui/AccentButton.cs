@@ -29,6 +29,8 @@ internal sealed class AccentButton : Control
         Cursor = Cursors.Hand;
         Font = Theme.ButtonFont;
         Size = new Size(150, 38);
+        TabStop = true;
+        SetStyle(ControlStyles.Selectable, true);
     }
 
     public ButtonVariant Variant { get; set; } = ButtonVariant.Primary;
@@ -74,6 +76,30 @@ internal sealed class AccentButton : Control
         base.OnEnabledChanged(e);
     }
 
+    protected override void OnGotFocus(EventArgs e)
+    {
+        Invalidate();
+        base.OnGotFocus(e);
+    }
+
+    protected override void OnLostFocus(EventArgs e)
+    {
+        Invalidate();
+        base.OnLostFocus(e);
+    }
+
+    protected override void OnKeyDown(KeyEventArgs e)
+    {
+        if (e.KeyCode is Keys.Space or Keys.Enter)
+        {
+            OnClick(EventArgs.Empty);
+            e.Handled = true;
+            return;
+        }
+
+        base.OnKeyDown(e);
+    }
+
     protected override void OnPaint(PaintEventArgs e)
     {
         Graphics graphics = e.Graphics;
@@ -86,8 +112,8 @@ internal sealed class AccentButton : Control
         Color textColor;
         if (Variant == ButtonVariant.Primary)
         {
-            Color start = hovered ? Shapes.Blend(Theme.Accent, Color.White, 0.12f) : Theme.Accent;
-            Color end = hovered ? Shapes.Blend(Theme.AccentAlt, Color.White, 0.08f) : Theme.AccentAlt;
+            Color start = hovered ? Shapes.Blend(Theme.AccentStart, Color.White, 0.12f) : Theme.AccentStart;
+            Color end = hovered ? Shapes.Blend(Theme.AccentEnd, Color.White, 0.08f) : Theme.AccentEnd;
             if (pressed)
             {
                 start = Shapes.Blend(start, Color.Black, 0.18f);
@@ -129,5 +155,13 @@ internal sealed class AccentButton : Control
         }
 
         Shapes.DrawText(graphics, Text, Font, bounds, textColor, ContentAlignment.MiddleCenter);
+
+        if (Focused && Enabled)
+        {
+            Rectangle ringBounds = new(1, 1, Math.Max(1, Width - 3), Math.Max(1, Height - 3));
+            using GraphicsPath focusPath = Shapes.RoundedRect(ringBounds, Math.Max(1, radius - 1));
+            using Pen focusPen = new(Theme.FocusRing, 2f);
+            graphics.DrawPath(focusPen, focusPath);
+        }
     }
 }

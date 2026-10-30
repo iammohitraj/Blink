@@ -2,25 +2,31 @@
 
 namespace Blink;
 
-/// <summary>Central palette and typography for the dark theme.</summary>
+/// <summary>
+/// Central palette and typography for the high-contrast dark theme. Text and border
+/// values are picked to stay readable on both the page and the raised card surfaces.
+/// </summary>
 internal static class Theme
 {
-    public static readonly Color Background = Color.FromArgb(9, 11, 17);
-    public static readonly Color Surface = Color.FromArgb(19, 23, 32);
-    public static readonly Color SurfaceRaised = Color.FromArgb(26, 31, 43);
-    public static readonly Color Border = Color.FromArgb(36, 43, 57);
-    public static readonly Color BorderStrong = Color.FromArgb(54, 63, 82);
-    public static readonly Color TextPrimary = Color.FromArgb(240, 243, 250);
-    public static readonly Color TextSecondary = Color.FromArgb(150, 160, 180);
-    public static readonly Color TextMuted = Color.FromArgb(106, 116, 137);
-    public static readonly Color Accent = Color.FromArgb(124, 92, 255);
-    public static readonly Color AccentAlt = Color.FromArgb(0, 200, 255);
-    public static readonly Color Success = Color.FromArgb(72, 216, 152);
-    public static readonly Color Warning = Color.FromArgb(255, 176, 74);
-    public static readonly Color TrackOff = Color.FromArgb(44, 52, 68);
-    public static readonly Color Hover = Color.FromArgb(32, 38, 52);
-    public static readonly Color Pressed = Color.FromArgb(44, 52, 68);
-    public static readonly Color CloseHover = Color.FromArgb(211, 61, 61);
+    public static readonly Color Background = Color.FromArgb(4, 6, 12);
+    public static readonly Color Surface = Color.FromArgb(17, 24, 39);
+    public static readonly Color SurfaceRaised = Color.FromArgb(27, 36, 54);
+    public static readonly Color Border = Color.FromArgb(52, 67, 94);
+    public static readonly Color BorderStrong = Color.FromArgb(90, 110, 146);
+    public static readonly Color TextPrimary = Color.FromArgb(246, 249, 255);
+    public static readonly Color TextSecondary = Color.FromArgb(190, 202, 224);
+    public static readonly Color TextMuted = Color.FromArgb(150, 164, 190);
+    public static readonly Color Accent = Color.FromArgb(139, 107, 255);
+    public static readonly Color AccentAlt = Color.FromArgb(34, 211, 255);
+    public static readonly Color AccentStart = Color.FromArgb(106, 69, 245);
+    public static readonly Color AccentEnd = Color.FromArgb(123, 77, 255);
+    public static readonly Color Success = Color.FromArgb(74, 222, 150);
+    public static readonly Color Warning = Color.FromArgb(255, 183, 77);
+    public static readonly Color FocusRing = Color.FromArgb(34, 211, 255);
+    public static readonly Color TrackOff = Color.FromArgb(62, 76, 104);
+    public static readonly Color Hover = Color.FromArgb(30, 42, 62);
+    public static readonly Color Pressed = Color.FromArgb(42, 56, 81);
+    public static readonly Color CloseHover = Color.FromArgb(214, 48, 48);
 
     public static readonly Font TitleFont = CreateFont("Segoe UI Semibold", 17f);
     public static readonly Font TitleBarFont = CreateFont("Segoe UI Semibold", 10f);

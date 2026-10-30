@@ -47,12 +47,15 @@ internal sealed class StatusDot : Control
         float x = (Width - dotSize) / 2f;
         float y = (Height - dotSize) / 2f;
 
-        using (SolidBrush glow = new(Color.FromArgb(52, dotColor)))
+        using (SolidBrush glow = new(Color.FromArgb(84, dotColor)))
         {
             graphics.FillEllipse(glow, 0, 0, size, size);
         }
 
         using SolidBrush core = new(dotColor);
         graphics.FillEllipse(core, x, y, dotSize, dotSize);
+
+        using Pen ring = new(Color.FromArgb(150, dotColor), 1.2f);
+        graphics.DrawEllipse(ring, x - 1, y - 1, dotSize + 2, dotSize + 2);
     }
 }

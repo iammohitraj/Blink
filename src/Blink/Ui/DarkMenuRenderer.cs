@@ -76,6 +76,8 @@ internal sealed class DarkMenuRenderer : ToolStripProfessionalRenderer
             using SolidBrush brush = new(Theme.Hover);
             e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
             e.Graphics.FillPath(brush, path);
+            using Pen edge = new(Theme.Accent, 1.5f);
+            e.Graphics.DrawPath(edge, path);
         }
     }
 

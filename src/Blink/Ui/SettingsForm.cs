@@ -69,6 +69,9 @@ internal sealed class SettingsForm : Form
         this.controller = controller;
         this.settings = settings;
 
+        toolTip.BackColor = Theme.SurfaceRaised;
+        toolTip.ForeColor = Theme.TextPrimary;
+
         titleBarLabel = CreateLabel(AppInfo.Name, Theme.TitleBarFont, Theme.TextPrimary, Theme.Background);
         heroTitle = CreateLabel(AppInfo.Name, Theme.TitleFont, Theme.TextPrimary, Theme.Background);
         heroSubtitle = CreateLabel($"{AppInfo.Tagline}  ·  by {AppInfo.Author}", Theme.Small, Theme.TextSecondary, Theme.Background);

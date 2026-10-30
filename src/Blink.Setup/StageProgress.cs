@@ -87,9 +87,14 @@ internal sealed class StageProgress : Control
         Rectangle track = new(0, 0, width, height);
 
         using (GraphicsPath trackPath = Shapes.RoundedRect(track, radius))
-        using (SolidBrush trackBrush = new(Theme.TrackOff))
         {
-            graphics.FillPath(trackBrush, path: trackPath);
+            using (SolidBrush trackBrush = new(Theme.TrackOff))
+            {
+                graphics.FillPath(trackBrush, trackPath);
+            }
+
+            using Pen edge = new(Theme.BorderStrong);
+            graphics.DrawPath(edge, trackPath);
         }
 
         if (indeterminate)

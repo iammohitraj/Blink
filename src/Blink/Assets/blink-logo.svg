@@ -1,0 +1,122 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 766 735" width="766" height="735" role="img" aria-labelledby="blink-title">
+  <title id="blink-title">Blink — desktop icons, one blink away</title>
+
+  <defs>
+    <radialGradient id="aura" gradientUnits="userSpaceOnUse" cx="300" cy="220" r="560">
+      <stop offset="0" stop-color="#0C1733"/>
+      <stop offset="1" stop-color="#05070D" stop-opacity="0"/>
+    </radialGradient>
+
+    <linearGradient id="bezel" gradientUnits="userSpaceOnUse" x1="192" y1="224" x2="564" y2="470">
+      <stop offset="0" stop-color="#35C6FF"/>
+      <stop offset="0.38" stop-color="#4D9BFF"/>
+      <stop offset="0.66" stop-color="#8B5CF6"/>
+      <stop offset="0.86" stop-color="#C05BFF"/>
+      <stop offset="1" stop-color="#E45CFF"/>
+    </linearGradient>
+
+    <linearGradient id="screen" gradientUnits="userSpaceOnUse" x1="214" y1="247" x2="536" y2="447">
+      <stop offset="0" stop-color="#0A1030"/>
+      <stop offset="0.55" stop-color="#1A1050"/>
+      <stop offset="1" stop-color="#2C115E"/>
+    </linearGradient>
+
+    <linearGradient id="wave-bright" gradientUnits="userSpaceOnUse" x1="214" y1="292" x2="536" y2="447">
+      <stop offset="0" stop-color="#2F7BFF"/>
+      <stop offset="0.55" stop-color="#0B46D6"/>
+      <stop offset="1" stop-color="#072E9E"/>
+    </linearGradient>
+
+    <linearGradient id="wave-deep" gradientUnits="userSpaceOnUse" x1="300" y1="350" x2="540" y2="447">
+      <stop offset="0" stop-color="#0640C4"/>
+      <stop offset="1" stop-color="#041A66"/>
+    </linearGradient>
+
+    <radialGradient id="moon" cx="0.36" cy="0.3" r="0.85">
+      <stop offset="0" stop-color="#FFE0A8"/>
+      <stop offset="0.45" stop-color="#FFA77E"/>
+      <stop offset="0.82" stop-color="#FF6FC8"/>
+      <stop offset="1" stop-color="#D65BFF"/>
+    </radialGradient>
+
+    <linearGradient id="ring" gradientUnits="userSpaceOnUse" x1="127" y1="340" x2="654" y2="470">
+      <stop offset="0" stop-color="#35D0FF"/>
+      <stop offset="0.3" stop-color="#4FA3FF"/>
+      <stop offset="0.5" stop-color="#7B6BFF"/>
+      <stop offset="0.72" stop-color="#B45BFF"/>
+      <stop offset="0.9" stop-color="#E45CFF"/>
+      <stop offset="1" stop-color="#FF7AD9"/>
+    </linearGradient>
+
+    <linearGradient id="sparkle" gradientUnits="userSpaceOnUse" x1="575" y1="286" x2="663" y2="160">
+      <stop offset="0" stop-color="#5BD0FF"/>
+      <stop offset="0.55" stop-color="#A78BFA"/>
+      <stop offset="1" stop-color="#E879F9"/>
+    </linearGradient>
+
+    <linearGradient id="stand" gradientUnits="userSpaceOnUse" x1="267" y1="452" x2="484" y2="570">
+      <stop offset="0" stop-color="#35C6FF"/>
+      <stop offset="0.55" stop-color="#6D6BFF"/>
+      <stop offset="1" stop-color="#9B5BFF"/>
+    </linearGradient>
+
+    <linearGradient id="badge" gradientUnits="userSpaceOnUse" x1="150" y1="364" x2="272" y2="482">
+      <stop offset="0" stop-color="#1B2337"/>
+      <stop offset="1" stop-color="#0A0E1A"/>
+    </linearGradient>
+
+    <clipPath id="screen-clip">
+      <rect x="214" y="247" width="322" height="200" rx="16"/>
+    </clipPath>
+
+    <filter id="soft" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="10"/>
+    </filter>
+  </defs>
+
+  <rect width="766" height="735" rx="64" fill="#05070D"/>
+  <rect width="766" height="735" rx="64" fill="url(#aura)"/>
+  <rect x="1" y="1" width="764" height="733" rx="63" fill="none" stroke="#FFFFFF" stroke-opacity="0.08" stroke-width="2"/>
+
+  <g id="stand">
+    <path d="M352 452h66c-2 30-3 58-6 88h-54c-3-30-4-58-6-88z" fill="url(#stand)"/>
+    <rect x="266" y="536" width="218" height="34" rx="17" fill="url(#stand)"/>
+  </g>
+
+  <g id="monitor">
+    <rect x="192" y="224" width="372" height="246" rx="42" fill="url(#bezel)"/>
+    <rect x="199" y="231" width="358" height="232" rx="36" fill="#090D1C"/>
+    <rect x="214" y="247" width="322" height="200" rx="16" fill="url(#screen)"/>
+
+    <g clip-path="url(#screen-clip)">
+      <circle cx="250" cy="270" r="2" fill="#CBD7FF" opacity="0.55"/>
+      <circle cx="286" cy="262" r="1.4" fill="#CBD7FF" opacity="0.4"/>
+      <circle cx="266" cy="300" r="1.2" fill="#CBD7FF" opacity="0.35"/>
+
+      <circle cx="466" cy="300" r="58" fill="#FF6FC8" opacity="0.12" filter="url(#soft)"/>
+      <circle cx="466" cy="300" r="46" fill="url(#moon)"/>
+
+      <path d="M214 382c38-26 60-82 102-90 46-9 76 28 108 58 32 30 70 42 112 54v43H214z" fill="url(#wave-bright)"/>
+      <path d="M214 382c38-26 60-82 102-90 46-9 76 28 108 58 32 30 70 42 112 54" fill="none" stroke="#7FB0FF" stroke-opacity="0.55" stroke-width="3"/>
+      <path d="M286 447c34-45 86-95 144-99 44-3 70 24 106 56v43z" fill="url(#wave-deep)"/>
+    </g>
+  </g>
+
+  <g id="orbit">
+    <ellipse cx="389" cy="407" rx="262" ry="80" fill="none" stroke="#7B5CFF" stroke-opacity="0.35" stroke-width="38" filter="url(#soft)" transform="rotate(-13 389 407)"/>
+    <ellipse cx="389" cy="407" rx="262" ry="80" fill="none" stroke="url(#ring)" stroke-width="22" transform="rotate(-13 389 407)"/>
+  </g>
+
+  <g id="badge">
+    <rect x="150" y="364" width="122" height="118" rx="28" fill="#05070D" opacity="0.55" filter="url(#soft)"/>
+    <rect x="150" y="364" width="122" height="118" rx="28" fill="url(#badge)"/>
+    <rect x="150.75" y="364.75" width="120.5" height="116.5" rx="27.25" fill="none" stroke="#8FA3C8" stroke-opacity="0.36" stroke-width="1.5"/>
+    <g fill="none" stroke="#F5F8FF" stroke-width="4.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M179 423c10-16 19-23 32-23s22 7 32 23c-10 16-19 23-32 23s-22-7-32-23z"/>
+      <circle cx="211" cy="423" r="8.5"/>
+      <path d="M184 453l54-60"/>
+    </g>
+  </g>
+
+  <path id="sparkle" d="M619 160c5 37 13 50 44 63-31 13-39 26-44 63-5-37-13-50-44-63 31-13 39-26 44-63z" fill="url(#sparkle)"/>
+</svg>
