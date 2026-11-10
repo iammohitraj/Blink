@@ -12,6 +12,7 @@
     <Product>Blink Setup</Product>
     <AssemblyTitle>Blink Setup</AssemblyTitle>
     <Description>Installs and updates Blink.</Description>
+    <DefaultItemExcludes>$(DefaultItemExcludes);_corrupt_obj/**;*.corrupt/**</DefaultItemExcludes>
   </PropertyGroup>
 
   <!-- The installer shares Blink's theme and brand sources so the two windows stay
