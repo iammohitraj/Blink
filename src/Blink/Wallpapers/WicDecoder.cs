@@ -169,3 +169,4 @@ internal static class WicDecoder
         }
     }
 }
+

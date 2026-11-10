@@ -21,11 +21,14 @@ internal sealed class WallpaperDraggerForm : Form
     private readonly string imagePath;
     private readonly Size originalImageSize;
 
-    private readonly Label titleLabel;
-    private readonly Label coordBadge;
-    private readonly AccentButton applyButton;
-    private readonly AccentButton resetRatioButton;
-    private readonly AccentButton cancelButton;
+    private readonly Label titleLabel = new();
+    private readonly Label coordBadge = new();
+    private readonly AccentButton applyButton = new();
+    private readonly AccentButton resetRatioButton = new();
+    private readonly AccentButton presetCornerButton = new();
+    private readonly AccentButton cancelButton = new();
+
+    private bool initialized;
 
     public WallpaperDraggerForm(WallpaperService service, string imagePath)
     {
@@ -56,7 +59,7 @@ internal sealed class WallpaperDraggerForm : Form
         DoubleBuffered = true;
         BackColor = Theme.Background;
         KeyPreview = true;
-        MinimumSize = new Size(260, 200);
+        MinimumSize = new Size(460, 240);
         Text = $"{AppInfo.Name} — Custom Wallpaper & Logo Dragger";
         Icon = AppIcon.Get(32);
 
@@ -79,66 +82,59 @@ internal sealed class WallpaperDraggerForm : Form
             initialBounds = new Rectangle(posX, posY, baseW, baseH);
         }
 
-        // Account for header and footer chrome inside the dragger window
-        int windowWidth = Math.Max(MinimumSize.Width, initialBounds.Width);
-        int windowHeight = Math.Max(MinimumSize.Height, initialBounds.Height + HeaderHeight + BottomBarHeight);
-        SetBounds(initialBounds.X, Math.Max(workingArea.Top, initialBounds.Y - HeaderHeight), windowWidth, windowHeight);
+        titleLabel.Text = "Drag to Move • Drag Edges to Resize";
+        titleLabel.Font = Theme.ButtonFont;
+        titleLabel.ForeColor = Theme.TextPrimary;
+        titleLabel.BackColor = Color.Transparent;
+        titleLabel.AutoSize = false;
+        titleLabel.TextAlign = ContentAlignment.MiddleLeft;
+        titleLabel.Location = new Point(14, 0);
+        titleLabel.Height = HeaderHeight;
 
-        titleLabel = new Label
-        {
-            Text = "Drag to Move • Drag Edges to Resize",
-            Font = Theme.ButtonFont,
-            ForeColor = Theme.TextPrimary,
-            BackColor = Color.Transparent,
-            AutoSize = false,
-            TextAlign = ContentAlignment.MiddleLeft,
-            Location = new Point(14, 0),
-            Height = HeaderHeight
-        };
+        coordBadge.Font = Theme.Micro;
+        coordBadge.ForeColor = Theme.AccentAlt;
+        coordBadge.BackColor = Color.Transparent;
+        coordBadge.AutoSize = false;
+        coordBadge.TextAlign = ContentAlignment.MiddleRight;
+        coordBadge.Height = HeaderHeight;
 
-        coordBadge = new Label
-        {
-            Font = Theme.Micro,
-            ForeColor = Theme.AccentAlt,
-            BackColor = Color.Transparent,
-            AutoSize = false,
-            TextAlign = ContentAlignment.MiddleRight,
-            Height = HeaderHeight
-        };
-
-        applyButton = new AccentButton
-        {
-            Text = "✓ Apply on Screen",
-            Font = Theme.ButtonFont,
-            CornerRadius = 8,
-            Height = 32
-        };
+        applyButton.Text = "✓ Apply on Screen";
+        applyButton.Font = Theme.ButtonFont;
+        applyButton.CornerRadius = 8;
+        applyButton.Height = 32;
         applyButton.Click += (_, _) => ApplyCustomPlacement();
 
-        resetRatioButton = new AccentButton
-        {
-            Text = "↺ Reset Ratio",
-            Font = Theme.Small,
-            CornerRadius = 8,
-            Height = 32
-        };
+        resetRatioButton.Text = "↺ Reset Ratio";
+        resetRatioButton.Font = Theme.Small;
+        resetRatioButton.CornerRadius = 8;
+        resetRatioButton.Height = 32;
         resetRatioButton.Click += (_, _) => ResetAspectRatio();
 
-        cancelButton = new AccentButton
-        {
-            Text = "✕ Cancel",
-            Font = Theme.Small,
-            CornerRadius = 8,
-            Height = 32
-        };
+        presetCornerButton.Text = "◰ Snap Corner";
+        presetCornerButton.Font = Theme.Small;
+        presetCornerButton.CornerRadius = 8;
+        presetCornerButton.Height = 32;
+        presetCornerButton.Click += (_, _) => CycleCornerSnap();
+
+        cancelButton.Text = "✕ Cancel";
+        cancelButton.Font = Theme.Small;
+        cancelButton.CornerRadius = 8;
+        cancelButton.Height = 32;
         cancelButton.Click += (_, _) => Close();
 
         Controls.Add(titleLabel);
         Controls.Add(coordBadge);
         Controls.Add(applyButton);
         Controls.Add(resetRatioButton);
+        Controls.Add(presetCornerButton);
         Controls.Add(cancelButton);
 
+        // Account for header and footer chrome inside the dragger window
+        int windowWidth = Math.Max(MinimumSize.Width, initialBounds.Width);
+        int windowHeight = Math.Max(MinimumSize.Height, initialBounds.Height + HeaderHeight + BottomBarHeight);
+        SetBounds(initialBounds.X, Math.Max(workingArea.Top, initialBounds.Y - HeaderHeight), windowWidth, windowHeight);
+
+        initialized = true;
         UpdateLayout();
     }
 
@@ -329,6 +325,11 @@ internal sealed class WallpaperDraggerForm : Form
 
     private void UpdateLayout()
     {
+        if (!initialized)
+        {
+            return;
+        }
+
         Rectangle preview = GetPreviewBounds();
         titleLabel.Width = Math.Max(120, Width - 180);
 
@@ -337,14 +338,46 @@ internal sealed class WallpaperDraggerForm : Form
         coordBadge.Text = $"X: {Left}  Y: {Top}  |  {preview.Width}×{preview.Height} px";
 
         int btnY = Height - BottomBarHeight + ((BottomBarHeight - 32) / 2);
-        int spacing = 8;
-        int applyW = 140;
-        int resetW = 105;
-        int cancelW = 85;
+        int spacing = 6;
+        int applyW = 135;
+        int resetW = 95;
+        int snapW = 105;
+        int cancelW = 75;
 
-        applyButton.SetBounds(Width - applyW - resetW - cancelW - (spacing * 3), btnY, applyW, 32);
-        resetRatioButton.SetBounds(Width - resetW - cancelW - (spacing * 2), btnY, resetW, 32);
+        applyButton.SetBounds(Width - applyW - resetW - snapW - cancelW - (spacing * 4), btnY, applyW, 32);
+        resetRatioButton.SetBounds(Width - resetW - snapW - cancelW - (spacing * 3), btnY, resetW, 32);
+        presetCornerButton.SetBounds(Width - snapW - cancelW - (spacing * 2), btnY, snapW, 32);
         cancelButton.SetBounds(Width - cancelW - spacing, btnY, cancelW, 32);
+    }
+
+    private int snapCornerIndex;
+    private void CycleCornerSnap()
+    {
+        Rectangle workingArea = (Screen.FromControl(this) ?? Screen.PrimaryScreen ?? Screen.AllScreens[0]).WorkingArea;
+        snapCornerIndex = (snapCornerIndex + 1) % 5;
+        switch (snapCornerIndex)
+        {
+            case 0: // Top-Right (default logo position)
+                Left = workingArea.Right - Width - 24;
+                Top = workingArea.Top + 24;
+                break;
+            case 1: // Bottom-Right
+                Left = workingArea.Right - Width - 24;
+                Top = workingArea.Bottom - Height - 24;
+                break;
+            case 2: // Bottom-Left
+                Left = workingArea.Left + 24;
+                Top = workingArea.Bottom - Height - 24;
+                break;
+            case 3: // Top-Left
+                Left = workingArea.Left + 24;
+                Top = workingArea.Top + 24;
+                break;
+            case 4: // Center
+                Left = workingArea.Left + ((workingArea.Width - Width) / 2);
+                Top = workingArea.Top + ((workingArea.Height - Height) / 2);
+                break;
+        }
     }
 
     private void ResetAspectRatio()

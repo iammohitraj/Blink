@@ -597,3 +597,4 @@ internal static class SvgRasterizer
         return results.ToArray();
     }
 }
+
