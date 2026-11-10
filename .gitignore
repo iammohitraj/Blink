@@ -26,3 +26,7 @@ _corrupt_obj/
 # Local files that must never be committed
 .env
 .env.*
+
+# Code-signing material
+*.pfx
+*.p12

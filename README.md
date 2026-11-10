@@ -244,6 +244,48 @@ create the GitHub release with the installer attached.
 The installer embeds `dist\Blink.exe` at build time, so the script always publishes
 the app before the setup project.
 
+### Code signing
+
+Windows 11's **Smart App Control** and **SmartScreen** block or warn about unsigned
+downloads with no reputation — and a self-contained, single-file installer looks a lot
+like the kind of file they are built to stop. There is no app-side trick around this:
+the only durable fix is to Authenticode-sign the release.
+
+Signing is a release-time step, so it never touches the source tree:
+
+1. Get a code-signing certificate — an OV or EV certificate from a public CA, or
+   Azure Trusted Signing — and either install it or keep the `.pfx` on disk. Match the
+   certificate subject to the publisher already shipped (`Mohit Raj`, from
+   `InstallService.Publisher`), since Windows shows the two side by side.
+2. Point the release script at it and add `-Sign`:
+
+```powershell
+$env:BLINK_SIGN_CERT_THUMBPRINT = 'A1B2C3D4…'      # certificate in Cert:\CurrentUser\My
+# or:
+$env:BLINK_SIGN_PFX          = 'C:\certs\blink.pfx'
+$env:BLINK_SIGN_PFX_PASSWORD = '…'
+
+powershell -ExecutionPolicy Bypass -File .\tools\Release.ps1 patch -Sign -Publish
+```
+
+`Release.ps1` signs `Blink.exe` **before** the installer embeds it, so the payload that
+lands in `%LOCALAPPDATA%\Blink\Blink.exe` is signed too, then signs `BlinkSetup.exe`,
+the file users actually download and run. `signtool` is located on `PATH` or in the
+Windows SDK; set `BLINK_SIGN_TIMESTAMP_URL` to override the default RFC 3161 timestamp
+server.
+
+An EV certificate or Azure Trusted Signing earns SmartScreen trust straight away; an OV
+certificate builds reputation across signed downloads. Smart App Control also needs the
+signed binary to be in good standing with Microsoft's reputation service, so ship
+signed releases consistently. Packing Blink as MSIX and shipping it through the
+Microsoft Store sidesteps Smart App Control entirely, at the cost of the current
+download-and-run flow.
+
+To test a build on a machine that already has Smart App Control on, sign it, or turn
+Smart App Control off under **Settings → Privacy & security → Windows Security → App &
+browser control**. That switch is one-way — turning it back on needs a Windows reset —
+so signing is the option to aim for.
+
 ### Benchmarks
 
 ```powershell

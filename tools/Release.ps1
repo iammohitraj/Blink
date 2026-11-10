@@ -21,6 +21,14 @@
 .PARAMETER Notes
     Release notes. Defaults to a short generated message.
 
+.PARAMETER Sign
+    Authenticode-sign Blink.exe and BlinkSetup.exe before packaging. Windows Smart App
+    Control and SmartScreen routinely block unsigned releases, so a public release
+    should always be signed. Supply the certificate through one of:
+      BLINK_SIGN_CERT_THUMBPRINT  thumbprint of a code-signing cert in Cert:\CurrentUser\My
+      BLINK_SIGN_PFX              path to a .pfx file, with BLINK_SIGN_PFX_PASSWORD
+    Optionally set BLINK_SIGN_TIMESTAMP_URL (default http://timestamp.digicert.com).
+
 .PARAMETER Publish
     Also commit the version bump, tag it, push, and create the GitHub release with
     the installer attached as an asset.
@@ -30,6 +38,10 @@
 
 .EXAMPLE
     powershell -ExecutionPolicy Bypass -File .\tools\Release.ps1 minor -Publish
+
+.EXAMPLE
+    $env:BLINK_SIGN_CERT_THUMBPRINT = 'A1B2C3D4E5F6…'
+    powershell -ExecutionPolicy Bypass -File .\tools\Release.ps1 patch -Sign -Publish
 #>
 [CmdletBinding()]
 param(
@@ -40,6 +52,8 @@ param(
     [string] $Version,
 
     [string] $Notes,
+
+    [switch] $Sign,
 
     [switch] $Publish
 )
@@ -108,6 +122,72 @@ function Invoke-DotNet([string[]] $arguments) {
     }
 }
 
+function Get-SignToolPath {
+    $command = Get-Command 'signtool.exe' -ErrorAction SilentlyContinue
+    if ($command) {
+        return $command.Source
+    }
+
+    # signtool ships with the Windows SDK rather than the .NET SDK, so look in the
+    # default Windows Kits install before giving up.
+    $kitsRoot = Join-Path ${env:ProgramFiles(x86)} 'Windows Kits\10\bin'
+    if (Test-Path $kitsRoot) {
+        $candidate = Get-ChildItem -Path $kitsRoot -Directory -ErrorAction SilentlyContinue |
+            Where-Object { $_.Name -as [version] } |
+            Sort-Object { [version] $_.Name } -Descending |
+            ForEach-Object { Join-Path $_.FullName 'x64\signtool.exe' } |
+            Where-Object { Test-Path $_ } |
+            Select-Object -First 1
+
+        if ($candidate) {
+            return $candidate
+        }
+    }
+
+    return $null
+}
+
+function Invoke-SignFile([string] $path) {
+    if (-not (Test-Path $path)) {
+        throw "Cannot sign a file that does not exist: $path"
+    }
+
+    $signtool = Get-SignToolPath
+    if (-not $signtool) {
+        throw 'signtool.exe was not found. Install the Windows SDK ("winget install Microsoft.WindowsSDK.10.0.22621") or put signtool on PATH, then re-run with -Sign.'
+    }
+
+    $timestampUrl = if ([string]::IsNullOrWhiteSpace($env:BLINK_SIGN_TIMESTAMP_URL)) {
+        'http://timestamp.digicert.com'
+    }
+    else {
+        $env:BLINK_SIGN_TIMESTAMP_URL
+    }
+
+    $arguments = @('sign', '/fd', 'SHA256', '/tr', $timestampUrl, '/td', 'SHA256', '/v')
+
+    if (-not [string]::IsNullOrWhiteSpace($env:BLINK_SIGN_CERT_THUMBPRINT)) {
+        $arguments += @('/sha1', $env:BLINK_SIGN_CERT_THUMBPRINT)
+    }
+    elseif (-not [string]::IsNullOrWhiteSpace($env:BLINK_SIGN_PFX)) {
+        $arguments += @('/f', $env:BLINK_SIGN_PFX)
+        if (-not [string]::IsNullOrWhiteSpace($env:BLINK_SIGN_PFX_PASSWORD)) {
+            $arguments += @('/p', $env:BLINK_SIGN_PFX_PASSWORD)
+        }
+    }
+    else {
+        throw 'Signing was requested but no certificate was provided. Set BLINK_SIGN_CERT_THUMBPRINT, or BLINK_SIGN_PFX with BLINK_SIGN_PFX_PASSWORD.'
+    }
+
+    $arguments += $path
+
+    Write-Host "  signtool sign $(Split-Path -Leaf $path)" -ForegroundColor DarkGray
+    & $signtool @arguments
+    if ($LASTEXITCODE -ne 0) {
+        throw "signtool failed for $path (exit code $LASTEXITCODE)."
+    }
+}
+
 $currentVersion = Read-CurrentVersion
 
 if ($PSBoundParameters.ContainsKey('Version')) {
@@ -160,6 +240,15 @@ if (-not (Test-Path $appExe)) {
     throw "Blink.exe was not produced at $appExe."
 }
 
+# Sign the app before the installer embeds it: BlinkSetup pulls dist\Blink.exe in as a
+# resource and writes those exact bytes to %LOCALAPPDATA%\Blink, so signing here is
+# what makes the installed executable signed as well.
+if ($Sign) {
+    Write-Host ''
+    Write-Host 'Signing Blink.exe' -ForegroundColor Cyan
+    Invoke-SignFile $appExe
+}
+
 Write-Host ''
 Write-Host 'Step 3/4  Building BlinkSetup.exe' -ForegroundColor Cyan
 Invoke-DotNet @(
@@ -178,6 +267,20 @@ Invoke-DotNet @(
 $setupExe = Join-Path $setupOut 'BlinkSetup.exe'
 if (-not (Test-Path $setupExe)) {
     throw "BlinkSetup.exe was not produced at $setupExe."
+}
+
+# BlinkSetup.exe is the file users download and run, so it is the one Smart App Control
+# and SmartScreen actually judge. Sign it before it is copied out as the release asset.
+if ($Sign) {
+    Write-Host ''
+    Write-Host 'Signing BlinkSetup.exe' -ForegroundColor Cyan
+    Invoke-SignFile $setupExe
+}
+else {
+    Write-Host ''
+    Write-Host 'WARNING: this release is unsigned.' -ForegroundColor Yellow
+    Write-Host 'Windows Smart App Control and SmartScreen commonly block unsigned installers.' -ForegroundColor Yellow
+    Write-Host 'Re-run with -Sign and a code-signing certificate to ship a trusted build.' -ForegroundColor Yellow
 }
 
 Write-Host ''
