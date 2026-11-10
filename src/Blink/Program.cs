@@ -26,7 +26,7 @@ internal static class Program
             bool confirmed = quiet || ConfirmDialog.Show(
                 null,
                 "Uninstall Blink",
-                "Blink will be removed from this PC, including its shortcuts, settings and the hidden-desktop-icon shortcut.",
+                "Blink will be removed from this PC, including its shortcuts, settings, wallpapers and the hidden-desktop-icon shortcut.",
                 "Uninstall");
 
             if (!confirmed)

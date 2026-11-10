@@ -19,6 +19,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="Blink.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
     <EmbeddedResource Include="Assets\blink.ico" LogicalName="Blink.Assets.blink.ico" />
     <None Include="Assets\blink-logo.png" />
   </ItemGroup>

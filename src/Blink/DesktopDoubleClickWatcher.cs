@@ -3,28 +3,35 @@
 namespace Blink;
 
 /// <summary>
-/// Watches the left mouse button and fires when the user double-clicks empty desktop space.
-/// Can be started and stopped at runtime so the option can be toggled from the settings window.
+/// Watches the mouse buttons on the desktop surface. Fires a toggle action on double-click
+/// (desktop icons) and a triple-tap action on three rapid clicks (custom mini wallpaper).
+/// Can be started and stopped at runtime from settings.
 /// </summary>
 internal sealed class DesktopDoubleClickWatcher : IDisposable
 {
     private readonly DesktopIconController desktopIconController;
     private readonly Action toggleAction;
+    private readonly Action? tripleTapAction;
     private readonly object gate = new();
     private readonly int doubleClickTime = SystemInformation.DoubleClickTime;
     private readonly Size doubleClickSize = SystemInformation.DoubleClickSize;
 
     private CancellationTokenSource? cancellationTokenSource;
+    private CancellationTokenSource? pendingDoubleTapCancellation;
     private Task? pollingTask;
-    private int toggleScheduled;
     private bool wasLeftButtonDown;
+    private int clickCount;
     private long lastClickTick;
     private NativeMethods.POINT lastClickPoint;
 
-    public DesktopDoubleClickWatcher(DesktopIconController desktopIconController, Action toggleAction)
+    public DesktopDoubleClickWatcher(
+        DesktopIconController desktopIconController,
+        Action toggleAction,
+        Action? tripleTapAction = null)
     {
         this.desktopIconController = desktopIconController;
         this.toggleAction = toggleAction;
+        this.tripleTapAction = tripleTapAction;
     }
 
     public bool IsRunning { get; private set; }
@@ -40,6 +47,7 @@ internal sealed class DesktopDoubleClickWatcher : IDisposable
 
             wasLeftButtonDown = false;
             lastClickTick = 0;
+            clickCount = 0;
             cancellationTokenSource = new CancellationTokenSource();
             IsRunning = true;
             CancellationToken token = cancellationTokenSource.Token;
@@ -57,6 +65,7 @@ internal sealed class DesktopDoubleClickWatcher : IDisposable
             }
 
             IsRunning = false;
+            CancelPendingDoubleTap();
             cancellationTokenSource?.Cancel();
             try
             {
@@ -76,7 +85,7 @@ internal sealed class DesktopDoubleClickWatcher : IDisposable
 
     private async Task PollLoop(CancellationToken cancellationToken)
     {
-        using PeriodicTimer timer = new(TimeSpan.FromMilliseconds(35));
+        using PeriodicTimer timer = new(TimeSpan.FromMilliseconds(30));
         try
         {
             while (await timer.WaitForNextTickAsync(cancellationToken).ConfigureAwait(false))
@@ -108,37 +117,60 @@ internal sealed class DesktopDoubleClickWatcher : IDisposable
 
     private void HandleLeftButtonDown(NativeMethods.POINT point)
     {
+        if (!desktopIconController.IsDesktopSurfacePoint(point))
+        {
+            CancelPendingDoubleTap();
+            clickCount = 0;
+            lastClickTick = 0;
+            return;
+        }
+
         long now = Environment.TickCount64;
         bool withinTime = now - lastClickTick <= doubleClickTime;
-        bool withinArea = Math.Abs(point.X - lastClickPoint.X) <= doubleClickSize.Width / 2 &&
-                          Math.Abs(point.Y - lastClickPoint.Y) <= doubleClickSize.Height / 2;
+        bool withinArea = Math.Abs(point.X - lastClickPoint.X) <= doubleClickSize.Width &&
+                          Math.Abs(point.Y - lastClickPoint.Y) <= doubleClickSize.Height;
 
-        if (withinTime && withinArea && desktopIconController.IsDesktopSurfacePoint(point))
+        if (withinTime && withinArea)
         {
-            lastClickTick = 0;
-            ScheduleToggleAfterDoubleClick();
-            return;
+            clickCount++;
+        }
+        else
+        {
+            clickCount = 1;
         }
 
         lastClickTick = now;
         lastClickPoint = point;
+
+        if (clickCount == 2)
+        {
+            ScheduleToggleAfterDoubleClick();
+        }
+        else if (clickCount >= 3)
+        {
+            CancelPendingDoubleTap();
+            clickCount = 0;
+            lastClickTick = 0;
+            tripleTapAction?.Invoke();
+        }
     }
 
     private void ScheduleToggleAfterDoubleClick()
     {
-        if (Interlocked.Exchange(ref toggleScheduled, 1) == 1)
-        {
-            return;
-        }
+        CancelPendingDoubleTap();
+        pendingDoubleTapCancellation = new CancellationTokenSource();
+        CancellationToken token = pendingDoubleTapCancellation.Token;
 
-        CancellationToken token = cancellationTokenSource?.Token ?? CancellationToken.None;
-
+        int delay = Math.Min(doubleClickTime, 240);
         _ = Task.Run(async () =>
         {
             try
             {
-                await Task.Delay(120, token).ConfigureAwait(false);
-                toggleAction();
+                await Task.Delay(delay, token).ConfigureAwait(false);
+                if (!token.IsCancellationRequested)
+                {
+                    toggleAction();
+                }
             }
             catch (OperationCanceledException)
             {
@@ -146,10 +178,19 @@ internal sealed class DesktopDoubleClickWatcher : IDisposable
             catch (ObjectDisposedException)
             {
             }
-            finally
-            {
-                Interlocked.Exchange(ref toggleScheduled, 0);
-            }
-        }, CancellationToken.None);
+        }, token);
+    }
+
+    private void CancelPendingDoubleTap()
+    {
+        try
+        {
+            pendingDoubleTapCancellation?.Cancel();
+            pendingDoubleTapCancellation?.Dispose();
+            pendingDoubleTapCancellation = null;
+        }
+        catch
+        {
+        }
     }
 }

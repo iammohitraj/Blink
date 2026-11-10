@@ -21,6 +21,9 @@ internal interface IBlinkController
 
     bool DoubleClickEnabled { get; set; }
 
+    /// <summary>Whether triple-tapping empty desktop space toggles the custom mini wallpaper.</summary>
+    bool TripleTapEnabled { get; set; }
+
     bool StartWithWindows { get; }
 
     bool TrySetStartWithWindows(bool enabled);
@@ -45,4 +48,21 @@ internal interface IBlinkController
 
     /// <summary>Checks for updates, or installs the one that is already known.</summary>
     void HandleUpdateAction();
+
+    /// <summary>Name of the active wallpaper, or null when Windows' own wallpaper is showing.</summary>
+    string? ActiveWallpaperName { get; }
+
+    int WallpaperCount { get; }
+
+    /// <summary>The last wallpaper failure, shown in the settings card until the next action.</summary>
+    string? WallpaperError { get; }
+
+    /// <summary>Applies the next wallpaper in the library; also the Ctrl + Alt + W action.</summary>
+    void NextWallpaper();
+
+    /// <summary>Opens the wallpaper library window.</summary>
+    void ShowWallpapers();
+
+    /// <summary>Opens the on-screen dragger to freely place and size the custom wallpaper or logo.</summary>
+    void OpenCustomWallpaperDragger();
 }

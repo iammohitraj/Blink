@@ -1,6 +1,7 @@
 // Blink · mohit
 
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace Blink;
 
@@ -14,7 +15,8 @@ internal sealed class AppSettings
 
     private static readonly JsonSerializerOptions SerializerOptions = new()
     {
-        WriteIndented = true
+        WriteIndented = true,
+        Converters = { new JsonStringEnumConverter() }
     };
 
     public bool StartWithWindows { get; set; }
@@ -27,6 +29,41 @@ internal sealed class AppSettings
 
     /// <summary>UTC time of the last update check, so Blink only polls GitHub a few times a day.</summary>
     public DateTime? LastUpdateCheckUtc { get; set; }
+
+    /// <summary>File name of the wallpaper Blink applied last, inside its wallpaper folder.</summary>
+    public string? ActiveWallpaperId { get; set; }
+
+    /// <summary>True once Blink has recorded the wallpaper that was there before its first change.</summary>
+    public bool PreviousWallpaperCaptured { get; set; }
+
+    public string? PreviousWallpaperPath { get; set; }
+
+    public string? PreviousWallpaperStyle { get; set; }
+
+    public string? PreviousWallpaperTile { get; set; }
+
+    public bool MiniWallpaperEnabled { get; set; }
+
+    /// <summary>File name shown in the desktop corner or custom position. Empty means "use the active wallpaper".</summary>
+    public string? MiniWallpaperId { get; set; }
+
+    public MiniWallpaperCorner MiniWallpaperCorner { get; set; } = MiniWallpaperCorner.TopRight;
+
+    public MiniWallpaperSize MiniWallpaperSize { get; set; } = MiniWallpaperSize.Medium;
+
+    /// <summary>True when the user chose custom screen position and size with the dragger.</summary>
+    public bool MiniWallpaperCustomPlacement { get; set; }
+
+    public int MiniWallpaperCustomX { get; set; } = -1;
+
+    public int MiniWallpaperCustomY { get; set; } = -1;
+
+    public int MiniWallpaperCustomWidth { get; set; } = 240;
+
+    public int MiniWallpaperCustomHeight { get; set; } = 240;
+
+    /// <summary>When true, triple-tapping empty desktop space toggles the custom mini wallpaper.</summary>
+    public bool TripleTapEnabled { get; set; } = true;
 
     public static AppSettings Load()
     {

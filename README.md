@@ -17,6 +17,10 @@ Blink hides and shows your Windows desktop icons instantly. Double-click empty
 desktop space, press `Ctrl + Alt + D`, or click the tray icon — the icons are gone
 (and back) in a blink.
 
+It is also a wallpaper shelf. Add your own pictures and GIFs, click one to put it on
+the desktop, press `Ctrl + Alt + W` to cycle through them, and pin any of them in a
+corner as a live, animated mini wallpaper.
+
 It is a small, self-contained tray app with a hand-drawn dark installer. No admin
 rights, no service, no telemetry, and it keeps itself up to date from GitHub Releases.
 
@@ -49,6 +53,11 @@ The same install without a window, which is what Blink's updater uses.
 
 - **Three ways to toggle** — global shortcut, double-click on empty wallpaper, or tray icon.
 - **Instant** — a single `ShowWindow` call on the desktop's list view; nothing is rebuilt.
+- **Wallpaper library** — add your own JPG, PNG, BMP or GIF files, apply one with a
+  click and switch to the next with `Ctrl + Alt + W`. Blink keeps its own copy, so the
+  folder survives the original files being moved.
+- **Animated mini wallpaper** — pin any wallpaper or GIF to a corner of the desktop as
+  a rounded, click-through window. Four corners, three sizes, behind every app.
 - **High-contrast dark UI** — settings and installer are drawn from scratch with
   accessible text contrast, visible focus rings and keyboard support.
 - **Automatic updates** — checks GitHub Releases in the background and updates in place.
@@ -61,12 +70,51 @@ The same install without a window, which is what Blink's updater uses.
 | Action | Result |
 |---|---|
 | `Ctrl + Alt + D` | Toggle desktop icons |
+| `Ctrl + Alt + W` | Apply the next wallpaper in the library |
 | Double-click empty desktop wallpaper | Toggle desktop icons |
+| Triple-tap empty desktop wallpaper | Toggle custom mini wallpaper / logo |
 | Double-click the tray icon | Toggle desktop icons |
-| Right-click the tray icon | Show/hide icons, settings, startup, updates, exit |
+| Right-click the tray icon | Icons, wallpapers, settings, startup, updates, exit |
 
 The settings window toggles the shortcut and the double-click gesture independently,
-controls start-with-Windows, and shows the current icon state and update status.
+controls start-with-Windows, shows the current icon and wallpaper state, and opens the
+wallpaper library.
+
+## Wallpapers
+
+Open **tray icon → Wallpaper** for a quick list of everything in the library, or pick
+**Wallpaper manager…** there for the full window.
+
+- **Add** JPG, JPEG, PNG, BMP or GIF files (up to 150 MB each) with
+  **Add wallpapers…**. Blink copies them into `%APPDATA%\Blink\wallpapers`, so moving
+  the originals later does not break the library. The first imported file is applied
+  straight away.
+- **Apply** by clicking a thumbnail in the manager, picking it from the tray submenu,
+  or pressing `Ctrl + Alt + W` to cycle. Blink sets the Windows wallpaper to *Fill*.
+- **Restore previous** puts back the Windows wallpaper Blink replaced the first time.
+  That earlier image is captured once, before the first change.
+- **Remove** deletes the copy inside Blink's folder and leaves the current desktop
+  wallpaper alone.
+
+### GIFs and the mini wallpaper
+
+Windows paints still wallpapers only, so a GIF on the desktop and in the gallery
+thumbnails shows its first frame. It stays animated in the mini wallpaper and in the
+manager's preview.
+
+The **mini wallpaper** is a small rounded image that lives in a corner of the desktop:
+
+| Control | What it does |
+|---|---|
+| On / Off | Show or hide it |
+| Source | Defaults to the active wallpaper; **Use selected** or **Choose file…** pins a different image or GIF |
+| Position | Top-left, top-right, bottom-left or bottom-right |
+| Size | Small, medium or large, scaled for your display's DPI |
+
+It is a click-through, always-behind window: it never takes focus, never blocks a
+click and stays below normal windows. It is drawn above the wallpaper itself, so a
+corner full of desktop icons lets the mini wallpaper overlap them — pick an emptier
+corner if that matters. Blink re-anchors it after Explorer restarts.
 
 ### Command line
 
@@ -97,8 +145,14 @@ touched. Automatic checks can be disabled in **Settings → Updates**.
 |---|---|
 | `%LOCALAPPDATA%\Blink\Blink.exe` | The installed program |
 | `%APPDATA%\Blink\settings.json` | Your preferences |
+| `%APPDATA%\Blink\wallpapers` | Your wallpaper and GIF copies |
+| `%APPDATA%\Blink\thumbnails` | Gallery thumbnails, rebuilt on demand |
+| `%APPDATA%\Blink\wallpaper-cache` | First-frame stills for GIFs |
 | `HKCU\Software\Microsoft\Windows\CurrentVersion\Run` → `Blink` | Start-with-Windows entry |
 | `HKCU\Software\Microsoft\Windows\CurrentVersion\Uninstall\Blink` | The "Installed apps" entry |
+
+The three image folders are caches and copies: deleting them is safe, but it also
+removes your wallpaper library.
 
 ## Uninstall
 
@@ -108,7 +162,8 @@ Use **Settings → Apps → Installed apps → Blink → Uninstall**, or run:
 & "$env:LOCALAPPDATA\Blink\Blink.exe" --uninstall
 ```
 
-Blink removes its shortcuts, startup entry, settings and program folder.
+Blink removes its shortcuts, startup entry, settings, wallpaper library and program
+folder.
 
 ## Requirements
 
@@ -125,7 +180,8 @@ Blink/
 │  ├─ Blink.Core/             Data structures and algorithms library
 │  └─ Blink.Setup/            Installer and uninstall engine
 ├─ tests/
-│  └─ Blink.Core.Tests/       xUnit suite for Blink.Core
+│  ├─ Blink.Core.Tests/       xUnit suite for Blink.Core
+│  └─ Blink.Tests/            xUnit suite for wallpapers and mini wallpaper layout
 ├─ benchmarks/
 │  └─ Blink.Core.Benchmarks/  Allocation and timing harness
 ├─ docs/

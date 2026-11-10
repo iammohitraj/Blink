@@ -15,6 +15,8 @@ internal static class AppInfo
 
     public const string HotKeyText = "Ctrl + Alt + D";
 
+    public const string WallpaperHotKeyText = "Ctrl + Alt + W";
+
     /// <summary>GitHub account that publishes Blink releases.</summary>
     public const string RepositoryOwner = "iammohitraj";
 

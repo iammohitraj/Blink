@@ -20,6 +20,8 @@ coverage/
 Thumbs.db
 desktop.ini
 .DS_Store
+*.corrupt/
+_corrupt_obj/
 
 # Local files that must never be committed
 .env

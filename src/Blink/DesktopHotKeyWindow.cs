@@ -4,72 +4,125 @@ using System.Runtime.InteropServices;
 
 namespace Blink;
 
-/// <summary>Owns the global Ctrl + Alt + D shortcut through a message-only window.</summary>
+/// <summary>Owns Blink's global shortcuts through one message-only window.</summary>
 internal sealed class DesktopHotKeyWindow : NativeWindow, IDisposable
 {
     private const int ToggleHotKeyId = 1;
+    private const int WallpaperHotKeyId = 2;
+
     private const uint ToggleHotKeyModifiers =
         NativeMethods.MOD_CONTROL | NativeMethods.MOD_ALT | NativeMethods.MOD_NOREPEAT;
 
-    private readonly Action toggleAction;
-    private bool registered;
+    private const uint WallpaperHotKeyModifiers =
+        NativeMethods.MOD_CONTROL | NativeMethods.MOD_ALT | NativeMethods.MOD_NOREPEAT;
 
-    public DesktopHotKeyWindow(Action toggleAction)
+    private readonly Action toggleAction;
+    private readonly Action nextWallpaperAction;
+
+    private bool toggleRegistered;
+    private bool wallpaperRegistered;
+
+    public DesktopHotKeyWindow(Action toggleAction, Action nextWallpaperAction)
     {
         this.toggleAction = toggleAction;
+        this.nextWallpaperAction = nextWallpaperAction;
         CreateHandle(new CreateParams());
     }
 
-    public bool IsRegistered => registered;
+    public bool IsRegistered => toggleRegistered;
+
+    public bool IsWallpaperRegistered => wallpaperRegistered;
 
     public string? LastError { get; private set; }
 
-    /// <summary>Registers the shortcut. Returns false when Windows already owns the combination.</summary>
+    public string? WallpaperLastError { get; private set; }
+
+    /// <summary>Registers the icon shortcut. Returns false when Windows already owns the combination.</summary>
     public bool Enable()
     {
-        if (registered)
+        if (toggleRegistered)
         {
             return true;
         }
 
-        registered = NativeMethods.RegisterHotKey(
+        toggleRegistered = NativeMethods.RegisterHotKey(
             Handle,
             ToggleHotKeyId,
             ToggleHotKeyModifiers,
             (uint)Keys.D);
 
-        if (registered)
+        if (toggleRegistered)
         {
             LastError = null;
             return true;
         }
 
-        int error = Marshal.GetLastPInvokeError();
-        LastError = error == 0
-            ? $"Windows did not register {AppInfo.HotKeyText}."
-            : $"Windows did not register {AppInfo.HotKeyText}. Error code: {error}.";
+        LastError = DescribeFailure(AppInfo.HotKeyText);
         return false;
     }
 
     public void Disable()
     {
-        if (!registered)
+        if (!toggleRegistered)
         {
             LastError = null;
             return;
         }
 
         NativeMethods.UnregisterHotKey(Handle, ToggleHotKeyId);
-        registered = false;
+        toggleRegistered = false;
         LastError = null;
+    }
+
+    /// <summary>Registers Ctrl + Alt + W for the next wallpaper.</summary>
+    public bool EnableWallpaperHotKey()
+    {
+        if (wallpaperRegistered)
+        {
+            return true;
+        }
+
+        wallpaperRegistered = NativeMethods.RegisterHotKey(
+            Handle,
+            WallpaperHotKeyId,
+            WallpaperHotKeyModifiers,
+            (uint)Keys.W);
+
+        if (wallpaperRegistered)
+        {
+            WallpaperLastError = null;
+            return true;
+        }
+
+        WallpaperLastError = DescribeFailure(AppInfo.WallpaperHotKeyText);
+        return false;
+    }
+
+    public void DisableWallpaperHotKey()
+    {
+        if (!wallpaperRegistered)
+        {
+            WallpaperLastError = null;
+            return;
+        }
+
+        NativeMethods.UnregisterHotKey(Handle, WallpaperHotKeyId);
+        wallpaperRegistered = false;
+        WallpaperLastError = null;
     }
 
     public void Dispose()
     {
-        if (registered)
+        if (toggleRegistered)
         {
             NativeMethods.UnregisterHotKey(Handle, ToggleHotKeyId);
-            registered = false;
+            toggleRegistered = false;
+        }
+
+        if (wallpaperRegistered)
+        {
+            NativeMethods.UnregisterHotKey(Handle, WallpaperHotKeyId);
+            wallpaperRegistered = false;
         }
 
         DestroyHandle();
@@ -77,12 +130,30 @@ internal sealed class DesktopHotKeyWindow : NativeWindow, IDisposable
 
     protected override void WndProc(ref Message m)
     {
-        if (m.Msg == NativeMethods.WM_HOTKEY && m.WParam.ToInt32() == ToggleHotKeyId)
+        if (m.Msg == NativeMethods.WM_HOTKEY)
         {
-            toggleAction();
-            return;
+            int id = m.WParam.ToInt32();
+            if (id == ToggleHotKeyId)
+            {
+                toggleAction();
+                return;
+            }
+
+            if (id == WallpaperHotKeyId)
+            {
+                nextWallpaperAction();
+                return;
+            }
         }
 
         base.WndProc(ref m);
+    }
+
+    private static string DescribeFailure(string shortcut)
+    {
+        int error = Marshal.GetLastPInvokeError();
+        return error == 0
+            ? $"Windows did not register {shortcut}."
+            : $"Windows did not register {shortcut}. Error code: {error}.";
     }
 }

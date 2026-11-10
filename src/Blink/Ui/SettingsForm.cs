@@ -6,17 +6,20 @@ namespace Blink;
 internal sealed class SettingsForm : Form
 {
     private const int WindowWidth = 460;
-    private const int WindowHeight = 664;
+    private const int WindowHeight = 704;
     private const int TitleBarHeight = 46;
     private const int CardLeft = 20;
     private const int CardWidth = 420;
-    private const int StatusCardTop = 140;
-    private const int StatusCardHeight = 96;
-    private const int OptionsCardTop = 248;
-    private const int OptionsRowHeight = 58;
-    private const int UpdatesCardTop = 454;
-    private const int UpdatesCardHeight = 152;
-    private const int FooterTop = 622;
+    private const int StatusCardTop = 132;
+    private const int StatusCardHeight = 92;
+    private const int WallpaperCardTop = 236;
+    private const int WallpaperCardHeight = 92;
+    private const int OptionsCardTop = 340;
+    private const int OptionsRowHeight = 54;
+    private const int OptionsCardHeight = 172;
+    private const int UpdatesCardTop = 524;
+    private const int UpdatesCardHeight = 140;
+    private const int FooterTop = 678;
 
     private readonly IBlinkController controller;
     private readonly AppSettings settings;
@@ -37,6 +40,13 @@ internal sealed class SettingsForm : Form
     private readonly StatusDot statusDot = new();
     private readonly Label statusValue;
     private readonly AccentButton toggleButton = new();
+
+    private readonly CardPanel wallpaperCard = new();
+    private readonly Label wallpaperCaption;
+    private readonly Label wallpaperValue;
+    private readonly Label wallpaperHint;
+    private readonly AccentButton manageWallpapersButton = new() { Variant = ButtonVariant.Secondary };
+    private readonly AccentButton nextWallpaperButton = new() { Variant = ButtonVariant.Secondary };
 
     private readonly CardPanel optionsCard = new();
     private readonly Label hotKeyTitle;
@@ -77,10 +87,13 @@ internal sealed class SettingsForm : Form
         heroSubtitle = CreateLabel($"{AppInfo.Tagline}  ·  by {AppInfo.Author}", Theme.Small, Theme.TextSecondary, Theme.Background);
         statusCaption = CreateLabel("DESKTOP ICONS", Theme.CaptionFont, Theme.TextMuted, Theme.Surface);
         statusValue = CreateLabel("Visible", Theme.StatusFont, Theme.TextPrimary, Theme.Surface);
+        wallpaperCaption = CreateLabel("WALLPAPERS", Theme.CaptionFont, Theme.TextMuted, Theme.Surface);
+        wallpaperValue = CreateLabel("No wallpapers yet", Theme.Body, Theme.TextSecondary, Theme.Surface);
+        wallpaperHint = CreateLabel("Add images or GIFs to switch between them", Theme.Micro, Theme.TextMuted, Theme.Surface);
         hotKeyTitle = CreateLabel("Keyboard shortcut", Theme.Body, Theme.TextPrimary, Theme.Surface);
         hotKeyValue = CreateLabel(controller.HotKeyText, Theme.Small, Theme.TextSecondary, Theme.Surface);
-        doubleClickTitle = CreateLabel("Double-click desktop", Theme.Body, Theme.TextPrimary, Theme.Surface);
-        doubleClickValue = CreateLabel("Double-click empty desktop space to toggle", Theme.Small, Theme.TextSecondary, Theme.Surface);
+        doubleClickTitle = CreateLabel("Desktop tap gestures", Theme.Body, Theme.TextPrimary, Theme.Surface);
+        doubleClickValue = CreateLabel("Double-click to toggle icons • Triple-tap to toggle custom mini wallpaper / logo", Theme.Small, Theme.TextSecondary, Theme.Surface);
         startupTitle = CreateLabel("Start with Windows", Theme.Body, Theme.TextPrimary, Theme.Surface);
         startupValue = CreateLabel("Launch Blink automatically when you sign in", Theme.Small, Theme.TextSecondary, Theme.Surface);
         updatesCaption = CreateLabel("UPDATES", Theme.CaptionFont, Theme.TextMuted, Theme.Surface);
@@ -97,6 +110,7 @@ internal sealed class SettingsForm : Form
         BuildTitleBar();
         BuildHero();
         BuildStatusCard();
+        BuildWallpaperCard();
         BuildOptionsCard();
         BuildUpdatesCard();
         BuildFooter();
@@ -231,6 +245,23 @@ internal sealed class SettingsForm : Form
         Controls.Add(statusCard);
     }
 
+    private void BuildWallpaperCard()
+    {
+        manageWallpapersButton.Click += (_, _) => controller.ShowWallpapers();
+        nextWallpaperButton.Click += (_, _) => controller.NextWallpaper();
+
+        foreach (Control control in new Control[]
+                 {
+                     wallpaperCaption, wallpaperValue, wallpaperHint,
+                     manageWallpapersButton, nextWallpaperButton
+                 })
+        {
+            wallpaperCard.Controls.Add(control);
+        }
+
+        Controls.Add(wallpaperCard);
+    }
+
     private void BuildOptionsCard()
     {
         hotKeySwitch.CheckedChanged += (_, _) => ApplyHotKeySetting();
@@ -315,7 +346,17 @@ internal sealed class SettingsForm : Form
         toggleButton.SetBounds(S(250), S(30), S(150), S(38));
         toggleButton.CornerRadius = S(10);
 
-        optionsCard.SetBounds(S(CardLeft), S(OptionsCardTop), S(CardWidth), S(194));
+        wallpaperCard.SetBounds(S(CardLeft), S(WallpaperCardTop), S(CardWidth), S(WallpaperCardHeight));
+        wallpaperCard.CornerRadius = S(12);
+        wallpaperCaption.SetBounds(S(20), S(14), S(200), S(14));
+        wallpaperValue.SetBounds(S(20), S(34), S(220), S(18));
+        wallpaperHint.SetBounds(S(20), S(54), S(220), S(14));
+        manageWallpapersButton.SetBounds(S(250), S(10), S(150), S(32));
+        manageWallpapersButton.CornerRadius = S(10);
+        nextWallpaperButton.SetBounds(S(250), S(48), S(150), S(32));
+        nextWallpaperButton.CornerRadius = S(10);
+
+        optionsCard.SetBounds(S(CardLeft), S(OptionsCardTop), S(CardWidth), S(OptionsCardHeight));
         optionsCard.CornerRadius = S(12);
 
         Label[] rowTitles = { hotKeyTitle, doubleClickTitle, startupTitle };
@@ -431,6 +472,33 @@ internal sealed class SettingsForm : Form
 
             startupValue.Text = "Launch Blink automatically when you sign in";
             startupValue.ForeColor = Theme.TextSecondary;
+
+            int wallpaperCount = controller.WallpaperCount;
+            string? activeWallpaper = controller.ActiveWallpaperName;
+            string? wallpaperError = controller.WallpaperError;
+
+            if (!string.IsNullOrEmpty(wallpaperError))
+            {
+                wallpaperValue.Text = wallpaperError;
+                wallpaperValue.ForeColor = Theme.Warning;
+                toolTip.SetToolTip(wallpaperValue, wallpaperError);
+            }
+            else
+            {
+                wallpaperValue.Text = !string.IsNullOrEmpty(activeWallpaper)
+                    ? activeWallpaper
+                    : wallpaperCount == 0 ? "No wallpapers yet" : "Windows wallpaper";
+                wallpaperValue.ForeColor = string.IsNullOrEmpty(activeWallpaper)
+                    ? Theme.TextSecondary
+                    : Theme.TextPrimary;
+                toolTip.SetToolTip(wallpaperValue, string.Empty);
+            }
+
+            wallpaperHint.Text = wallpaperCount == 0
+                ? "Add images or GIFs to switch between them"
+                : $"{wallpaperCount} wallpaper{(wallpaperCount == 1 ? string.Empty : "s")} · {AppInfo.WallpaperHotKeyText} switches";
+            nextWallpaperButton.Enabled = wallpaperCount > 0;
+            manageWallpapersButton.Text = wallpaperCount == 0 ? "Add wallpapers…" : "Manage…";
 
             autoUpdateSwitch.Checked = controller.AutoCheckUpdates;
             updateVersionLabel.Text = $"{AppInfo.Name} {controller.Version}";

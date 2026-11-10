@@ -31,6 +31,28 @@ internal sealed class DesktopIconController
         }
     }
 
+    /// <summary>
+    /// The top-level window that owns the desktop surface (Progman, or the WorkerW that
+    /// hosts the icon view). Used to place the mini wallpaper on the desktop layer.
+    /// </summary>
+    public nint DesktopRootHandle
+    {
+        get
+        {
+            nint listView = ListViewHandle;
+            if (listView != nint.Zero)
+            {
+                nint root = NativeMethods.GetAncestor(listView, NativeMethods.GA_ROOT);
+                if (root != nint.Zero)
+                {
+                    return root;
+                }
+            }
+
+            return NativeMethods.FindWindow("Progman", null);
+        }
+    }
+
     public bool IconsVisible
     {
         get

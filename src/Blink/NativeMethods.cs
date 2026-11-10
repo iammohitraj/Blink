@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 
 namespace Blink;
 
-internal static class NativeMethods
+internal static partial class NativeMethods
 {
     public const int SW_HIDE = 0;
     public const int SW_SHOW = 5;
