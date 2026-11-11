@@ -1,0 +1,70 @@
+name: release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to release (e.g. v1.2.2)'
+        required: true
+        default: 'v1.2.2'
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    name: Build and publish release asset
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Extract version
+        id: get_version
+        shell: pwsh
+        run: |
+          $props = Get-Content Directory.Build.props -Raw
+          if ($props -match '<Version>\s*([0-9]+\.[0-9]+\.[0-9]+)\s*</Version>') {
+            $ver = $Matches[1]
+          } else {
+            $ver = "1.2.2"
+          }
+          Write-Host "Releasing version $ver"
+          "version=$ver" >> $env:GITHUB_OUTPUT
+
+      - name: Build Blink.exe
+        shell: pwsh
+        run: |
+          dotnet publish src/Blink/Blink.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:EnableCompressionInSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:DebugType=None -p:DebugSymbols=false -o dist
+
+      - name: Build BlinkSetup.exe
+        shell: pwsh
+        run: |
+          dotnet publish src/Blink.Setup/BlinkSetup.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:EnableCompressionInSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:DebugType=None -p:DebugSymbols=false -o src/Blink.Setup/dist-setup
+
+      - name: Prepare release asset
+        shell: pwsh
+        run: |
+          $ver = "${{ steps.get_version.outputs.version }}"
+          New-Item -ItemType Directory -Path release -Force
+          Copy-Item "src/Blink.Setup/dist-setup/BlinkSetup.exe" "release/BlinkSetup-$ver.exe" -Force
+          Get-ChildItem release
+
+      - name: Publish to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: release/BlinkSetup-${{ steps.get_version.outputs.version }}.exe
+          draft: false
+          prerelease: false
+          generate_release_notes: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
