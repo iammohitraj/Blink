@@ -232,6 +232,21 @@ public sealed class WallpaperLibraryTests : IDisposable
         Assert.True(File.Exists(thumbnail));
     }
 
+    [Fact]
+    public void Rasterize_SupportsComplexVectorGraphics()
+    {
+        string emblemPath = @"C:\Users\KIIT\AppData\Roaming\Blink\Wallpapers\Emblem_of_India (1)-cropped.svg";
+        if (File.Exists(emblemPath))
+        {
+            using Bitmap? bmp = SvgRasterizer.TryRasterize(emblemPath);
+            Assert.NotNull(bmp);
+            Assert.True(bmp.Width > 0);
+            Assert.True(bmp.Height > 0);
+            // Verify crisp dimension
+            Assert.True(bmp.Width >= 500 || bmp.Height >= 500);
+        }
+    }
+
     private WallpaperItem Import(string source)
     {
         WallpaperImportResult result = library.Import([source]);

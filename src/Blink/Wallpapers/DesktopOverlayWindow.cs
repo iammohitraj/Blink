@@ -123,14 +123,38 @@ internal sealed class DesktopOverlayWindow : Form
         anchorTimer.Start();
     }
 
+    public void HideOverlay()
+    {
+        StopAnimation();
+        anchorTimer.Stop();
+
+        if (IsHandleCreated && !IsDisposed)
+        {
+            try
+            {
+                NativeMethods.ShowWindow(Handle, NativeMethods.SW_HIDE);
+            }
+            catch
+            {
+            }
+
+            try
+            {
+                Hide();
+            }
+            catch
+            {
+            }
+        }
+    }
+
     protected override void Dispose(bool disposing)
     {
         if (disposing)
         {
-            anchorTimer.Stop();
+            HideOverlay();
             anchorTimer.Tick -= OnAnchorTick;
             anchorTimer.Dispose();
-            StopAnimation();
             image?.Dispose();
             image = null;
             canvas?.Dispose();

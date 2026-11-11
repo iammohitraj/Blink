@@ -27,4 +27,8 @@
     <None Include="Assets\blink-logo.png" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Svg" Version="3.4.8" />
+  </ItemGroup>
+
 </Project>

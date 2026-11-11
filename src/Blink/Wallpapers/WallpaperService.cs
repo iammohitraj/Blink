@@ -196,6 +196,7 @@ internal sealed class WallpaperService : IDisposable
     {
         if (settings.MiniWallpaperEnabled == enabled)
         {
+            RefreshOverlay();
             return;
         }
 
@@ -307,8 +308,12 @@ internal sealed class WallpaperService : IDisposable
         WallpaperItem? source = settings.MiniWallpaperEnabled ? MiniSource : null;
         if (source is null)
         {
-            overlay?.Dispose();
-            overlay = null;
+            if (overlay is not null)
+            {
+                overlay.HideOverlay();
+                overlay.Dispose();
+                overlay = null;
+            }
             return;
         }
 
@@ -328,6 +333,7 @@ internal sealed class WallpaperService : IDisposable
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or ArgumentException or InvalidOperationException or OutOfMemoryException)
         {
+            overlay?.HideOverlay();
             overlay?.Dispose();
             overlay = null;
             LastError = $"The mini wallpaper could not be shown: {exception.Message}";
